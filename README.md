@@ -69,5 +69,9 @@ npm install
 npm run dev
 ```
 
+## 在线演示
+GitHub Pages（部署完成后可访问）：
+- https://wjt0321.github.io/china-history-river/
+
 ## 素材来源
 所有图片均为 Wikimedia Commons **Public Domain** 素材，详见 [`public/images/SOURCES.md`](./public/images/SOURCES.md)。
