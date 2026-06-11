@@ -1,0 +1,135 @@
+.map-view {
+  position: absolute;
+  inset: 0;
+  background: var(--color-bg-deep);
+}
+
+.map-container {
+  position: absolute;
+  inset: 0;
+}
+
+/* 深色科技感的 MapLibre 控件微调 */
+.maplibregl-ctrl-group {
+  background: var(--color-bg-elev) !important;
+  border: 1px solid var(--color-border) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+}
+
+.maplibregl-ctrl-group button {
+  background-color: transparent !important;
+  filter: invert(0.85) hue-rotate(165deg);
+}
+
+.maplibregl-ctrl-group button:hover {
+  background-color: var(--color-bg-elev-2) !important;
+}
+
+.maplibregl-ctrl-zoom-in span,
+.maplibregl-ctrl-zoom-out span {
+  filter: invert(0.85) hue-rotate(165deg);
+}
+
+/* 四角装饰（古风点缀） */
+.map-overlay-corner-tl,
+.map-overlay-corner-tr {
+  position: absolute;
+  top: 80px;
+  width: 40px;
+  height: 40px;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.map-overlay-corner-tl {
+  left: 24px;
+}
+
+.map-overlay-corner-tr {
+  right: calc(var(--panel-width, 420px) + 40px);
+}
+
+.corner-tick {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 16px;
+  height: 1px;
+  background: var(--dynasty-color, var(--color-primary));
+  box-shadow: 0 0 8px var(--dynasty-glow, var(--color-primary));
+  transition: background 0.6s var(--ease-out), box-shadow 0.6s var(--ease-out);
+}
+.corner-tick.rot {
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 16px;
+  background: var(--dynasty-color, var(--color-primary));
+  box-shadow: 0 0 8px var(--dynasty-glow, var(--color-primary));
+  transition: background 0.6s var(--ease-out), box-shadow 0.6s var(--ease-out);
+}
+
+/* 右下信息卡 */
+.map-overlay-info {
+  position: absolute;
+  top: 80px;
+  left: 24px;
+  z-index: 5;
+  pointer-events: none;
+  padding: 20px 24px;
+  border-radius: 8px;
+  min-width: 260px;
+}
+
+.info-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--dynasty-color, var(--color-primary));
+  letter-spacing: 3px;
+  margin-bottom: 10px;
+  opacity: 0.7;
+  transition: color 0.6s var(--ease-out);
+}
+
+.info-name {
+  font-family: var(--font-zh);
+  font-size: 36px;
+  font-weight: 900;
+  color: var(--color-paper);
+  letter-spacing: 10px;
+  line-height: 1;
+  margin-bottom: 10px;
+  text-shadow: 0 0 24px var(--dynasty-glow);
+  transition: color 0.6s var(--ease-out), text-shadow 0.6s var(--ease-out);
+}
+
+.info-era {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 2px;
+  transition: color 0.6s var(--ease-out);
+}
+
+.info-accent-line {
+  width: 40px;
+  height: 2px;
+  margin-top: 14px;
+  border-radius: 1px;
+  opacity: 0.8;
+  transition: background 0.6s var(--ease-out), width 0.8s var(--ease-out);
+}
+
+.map-overlay-info:hover .info-accent-line {
+  width: 80px;
+}
+
+.map-attribution {
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  font-size: 10px;
+  color: var(--color-text-faint);
+  font-family: var(--font-mono);
+  letter-spacing: 1px;
+  z-index: 4;
+}

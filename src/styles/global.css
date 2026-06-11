@@ -1,0 +1,140 @@
+/* ============================================================
+ * 全局样式 · 中华 5000 年历史长河
+ * 深色科技感 + 古风点缀
+ * ============================================================ */
+
+:root {
+  /* 主色板 */
+  --color-bg-deep: #050810;
+  --color-bg: #0a0e1a;
+  --color-bg-elev: #11172a;
+  --color-bg-elev-2: #1a2238;
+
+  /* 主色：青金蓝 */
+  --color-primary: #4ecdc4;
+  --color-primary-dim: #2a9d8f;
+  --color-primary-bright: #7be8df;
+
+  /* 强调色：朱砂红 */
+  --color-accent: #e63946;
+  --color-accent-dim: #b82c38;
+
+  /* 文字 */
+  --color-text: #e8eef5;
+  --color-text-dim: #8a96a8;
+  --color-text-faint: #4a5468;
+
+  /* 古风点缀 */
+  --color-ink: #1a1f2e;
+  --color-paper: #f4e4ba;
+
+  /* 边框 */
+  --color-border: rgba(78, 205, 196, 0.15);
+  --color-border-bright: rgba(78, 205, 196, 0.4);
+
+  /* 字体 */
+  --font-zh: 'Noto Serif SC', 'Source Han Serif SC', '宋体', 'STSong', serif;
+  --font-en: 'Cinzel', 'Times New Roman', serif;
+  --font-mono: 'JetBrains Mono', 'Consolas', monospace;
+
+  /* 缓动 */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* 主题色（动态注入） */
+  --dynasty-color: #e63946;
+  --dynasty-color-dim: color-mix(in srgb, var(--dynasty-color) 70%, #000);
+  --dynasty-color-bright: color-mix(in srgb, var(--dynasty-color) 80%, #fff);
+  --dynasty-glow: color-mix(in srgb, var(--dynasty-color) 40%, transparent);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-zh);
+  background: var(--color-bg-deep);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'kern' 1, 'liga' 1;
+}
+
+/* 全局滚动条 */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--dynasty-color-dim);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--dynasty-color);
+}
+
+/* 选区样式 */
+::selection {
+  background: var(--dynasty-color);
+  color: var(--color-bg-deep);
+}
+
+/* 实用类 */
+.gradient-text {
+  background: linear-gradient(135deg, var(--dynasty-color) 0%, var(--color-paper) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.glow {
+  text-shadow: 0 0 12px var(--dynasty-glow);
+}
+
+/* 玻璃拟态面板基类 */
+.glass-panel {
+  background: linear-gradient(
+    180deg,
+    rgba(10, 14, 26, 0.78) 0%,
+    rgba(10, 14, 26, 0.65) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+/* 响应式断点工具 */
+@media (max-width: 768px) {
+  :root {
+    --panel-width: 100vw;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1279px) {
+  :root {
+    --panel-width: 380px;
+  }
+}
+
+@media (min-width: 1280px) {
+  :root {
+    --panel-width: 440px;
+  }
+}
