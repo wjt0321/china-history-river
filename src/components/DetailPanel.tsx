@@ -4,37 +4,39 @@ import { useAppStore } from '@/stores/appStore'
 import type { Dynasty, Emperor, HistoricalEvent, Battle, Culture, ForeignRelation, TerritoryStage, HistoricalEvaluation, RelatedPerson } from '@/types/dynasty'
 import './DetailPanel.css'
 
+const asset = (path: string) => `${import.meta.env.BASE_URL}${path.replace(/^\//, '')}`
+
 const FIGURE_IMAGES: Record<string, string> = {
-  xia: '/images/figures/xia-yu.jpg',
-  shang: '/images/figures/shang-tang.jpg',
-  zhou: '/images/figures/zhou-wuwang.jpg',
-  qin: '/images/figures/thirteen-emperors.jpg',
-  han: '/images/figures/han-guangwu.jpg',
-  sanguo: '/images/figures/sanguo-zhuge.jpg',
-  'jin-nanbeichao': '/images/figures/jin-wangxizhi.jpg',
-  sui: '/images/figures/sui-yangdi.jpg',
-  tang: '/images/figures/tang-taizong.jpg',
-  song: '/images/figures/song-taizu.jpg',
-  yuan: '/images/figures/kublai.jpg',
-  ming: '/images/figures/zhuyuanzhang.jpg',
-  qing: '/images/figures/kangxi.jpg',
+  xia: asset('/images/figures/xia-yu.jpg'),
+  shang: asset('/images/figures/shang-tang.jpg'),
+  zhou: asset('/images/figures/zhou-wuwang.jpg'),
+  qin: asset('/images/figures/thirteen-emperors.jpg'),
+  han: asset('/images/figures/han-guangwu.jpg'),
+  sanguo: asset('/images/figures/sanguo-zhuge.jpg'),
+  'jin-nanbeichao': asset('/images/figures/jin-wangxizhi.jpg'),
+  sui: asset('/images/figures/sui-yangdi.jpg'),
+  tang: asset('/images/figures/tang-taizong.jpg'),
+  song: asset('/images/figures/song-taizu.jpg'),
+  yuan: asset('/images/figures/kublai.jpg'),
+  ming: asset('/images/figures/zhuyuanzhang.jpg'),
+  qing: asset('/images/figures/kangxi.jpg'),
 }
 
 const SCENE_IMAGES: Record<string, string> = {
-  xia: '/images/scenes/scene-xia-erlitou.jpg',
-  shang: '/images/scenes/scene-shang-ding.jpg',
-  zhou: '/images/scenes/scene-zhou-bells.jpg',
-  qin: '/images/scenes/han-palace.jpg',
-  han: '/images/scenes/han-palace.jpg',
-  sanguo: '/images/scenes/scene-sanguo-chibi.jpg',
-  'jin-nanbeichao': '/images/scenes/scene-dunhuang.jpg',
-  sui: '/images/scenes/scene-dunhuang.jpg',
-  tang: '/images/scenes/qianli-rivers.jpg',
-  wudai: '/images/scenes/scene-wudai-yeyan.jpg',
-  song: '/images/scenes/qingming-river.jpg',
-  yuan: '/images/scenes/scene-greatwall.jpg',
-  ming: '/images/scenes/scene-greatwall.jpg',
-  qing: '/images/scenes/forbidden-city.jpg',
+  xia: asset('/images/scenes/scene-xia-erlitou.jpg'),
+  shang: asset('/images/scenes/scene-shang-ding.jpg'),
+  zhou: asset('/images/scenes/scene-zhou-bells.jpg'),
+  qin: asset('/images/scenes/han-palace.jpg'),
+  han: asset('/images/scenes/han-palace.jpg'),
+  sanguo: asset('/images/scenes/scene-sanguo-chibi.jpg'),
+  'jin-nanbeichao': asset('/images/scenes/scene-dunhuang.jpg'),
+  sui: asset('/images/scenes/scene-dunhuang.jpg'),
+  tang: asset('/images/scenes/qianli-rivers.jpg'),
+  wudai: asset('/images/scenes/scene-wudai-yeyan.jpg'),
+  song: asset('/images/scenes/qingming-river.jpg'),
+  yuan: asset('/images/scenes/scene-greatwall.jpg'),
+  ming: asset('/images/scenes/scene-greatwall.jpg'),
+  qing: asset('/images/scenes/forbidden-city.jpg'),
 }
 
 const FIGURE_CAPTIONS: Record<string, string> = {
