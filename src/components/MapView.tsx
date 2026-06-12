@@ -276,58 +276,21 @@ async function loadDynasty(map: maplibregl.Map, dynasty: Dynasty) {
       })
     }
 
-    // === 都城标记 ===
+    // === 都城标记：朱印 ===
     const capitalCoords = CAPITAL_COORDS[dynasty.id]
     if (capitalCoords) {
-      const capSourceId = 'capital-marker'
-      const capLayer = 'capital-dot'
-      const capLabel = 'capital-label'
-      const capData: FeatureCollection = {
-        type: 'FeatureCollection',
-        features: [{
-          type: 'Feature',
-          geometry: { type: 'Point', coordinates: capitalCoords },
-          properties: { name: dynasty.name + ' · 都城', color },
-        }],
+      // 清理旧 marker
+      if ((map as any).__capitalMarker) {
+        ;(map as any).__capitalMarker.remove()
       }
-      if (map.getSource(capSourceId)) {
-        ;(map.getSource(capSourceId) as maplibregl.GeoJSONSource).setData(capData)
-        map.setPaintProperty(capLayer, 'circle-color', color)
-        map.setPaintProperty(capLabel, 'text-color', color)
-      } else {
-        map.addSource(capSourceId, { type: 'geojson', data: capData })
-        map.addLayer({
-          id: capLayer,
-          type: 'circle',
-          source: capSourceId,
-          paint: {
-            'circle-radius': 6,
-            'circle-color': color,
-            'circle-opacity': 0.9,
-            'circle-stroke-color': '#fff',
-            'circle-stroke-width': 1.5,
-            'circle-stroke-opacity': 0.6,
-          },
-        })
-        map.addLayer({
-          id: capLabel,
-          type: 'symbol',
-          source: capSourceId,
-          layout: {
-            'text-field': ['get', 'name'],
-            'text-size': 11,
-            'text-offset': [0, 1.2],
-            'text-anchor': 'top',
-            'text-font': ['Open Sans Regular'],
-          },
-          paint: {
-            'text-color': color,
-            'text-opacity': 0.85,
-            'text-halo-color': '#000',
-            'text-halo-width': 2,
-          },
-        })
-      }
+      const el = document.createElement('div')
+      el.className = 'capital-seal'
+      el.innerHTML = `<span>${dynasty.capital}</span>`
+      el.style.setProperty('--capital-color', color)
+      const marker = new maplibregl.Marker({ element: el, anchor: 'bottom' })
+        .setLngLat(capitalCoords)
+        .addTo(map)
+      ;(map as any).__capitalMarker = marker
     }
 
     // === 事件标记 ===

@@ -134,6 +134,34 @@
   z-index: 4;
 }
 
+/* 都城朱印 */
+.capital-seal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 2px solid var(--capital-color);
+  border-radius: 4px;
+  background: rgba(139, 53, 53, 0.85);
+  color: var(--color-paper);
+  font-family: var(--font-zh);
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: 0 0 14px var(--capital-color);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.capital-seal:hover {
+  transform: scale(1.12);
+}
+
+.capital-seal span {
+  writing-mode: vertical-rl;
+  letter-spacing: 0.05em;
+}
+
 @media (max-width: 768px) {
   .map-attribution {
     bottom: 192px;
