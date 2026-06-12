@@ -957,6 +957,52 @@
   transition: color 0.6s var(--ease-out);
 }
 
+/* 数据对比条 */
+.data-bar {
+  margin-bottom: 18px;
+}
+
+.data-bar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+
+.data-bar-label {
+  font-family: var(--font-zh);
+  font-size: 12px;
+  color: var(--color-text-dim);
+  letter-spacing: 1px;
+}
+
+.data-bar-value {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-paper);
+}
+
+.data-bar-unit {
+  font-size: 10px;
+  color: var(--color-text-faint);
+  margin-left: 2px;
+}
+
+.data-bar-track {
+  height: 8px;
+  background: var(--color-bg-elev-2);
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+}
+
+.data-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.8s var(--ease-out);
+  opacity: 0.85;
+}
+
 /* 响应式 */
 @media (max-width: 768px) {
   .detail-panel {

@@ -490,6 +490,7 @@ function CultureTab({ d }: { d: Dynasty }) {
 }
 
 function TerritoryTab({ d }: { d: Dynasty }) {
+  const color = d.color || '#e63946'
   return (
     <>
       <section className="detail-section">
@@ -504,6 +505,16 @@ function TerritoryTab({ d }: { d: Dynasty }) {
           ))}
         </ul>
       </section>
+
+      {d.economy && (
+        <section className="detail-section">
+          <h3 className="section-title">数据概览</h3>
+          <DataBar label="极盛疆域" value={d.economy.territory} max={1400} unit="万 km²" color={color} />
+          {d.economy.population !== undefined && (
+            <DataBar label="极盛人口" value={d.economy.population} max={45000} unit="万" color={color} />
+          )}
+        </section>
+      )}
 
       {d.economy && (
         <section className="detail-section">
@@ -542,6 +553,21 @@ function TerritoryTab({ d }: { d: Dynasty }) {
         </section>
       )}
     </>
+  )
+}
+
+function DataBar({ label, value, max, unit, color }: { label: string; value: number; max: number; unit: string; color: string }) {
+  const pct = Math.min(100, Math.max(0, (value / max) * 100))
+  return (
+    <div className="data-bar">
+      <div className="data-bar-header">
+        <div className="data-bar-label">{label}</div>
+        <div className="data-bar-value">{value.toLocaleString()} <span className="data-bar-unit">{unit}</span></div>
+      </div>
+      <div className="data-bar-track">
+        <div className="data-bar-fill" style={{ width: `${pct}%`, background: color }} />
+      </div>
+    </div>
   )
 }
 
