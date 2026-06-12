@@ -77,7 +77,11 @@ export function MapView() {
       const props = feature.properties as Record<string, string>
       const coordinates = (feature.geometry as unknown as GeoJSON.Point).coordinates as [number, number]
       popupRef.current?.remove()
-      popupRef.current = new maplibregl.Popup({ offset: 12, closeButton: true })
+      popupRef.current = new maplibregl.Popup({
+        offset: 14,
+        closeButton: true,
+        className: 'event-popup-tibei',
+      })
         .setLngLat(coordinates)
         .setHTML(`
           <div class="event-popup">
@@ -326,7 +330,7 @@ async function loadDynasty(map: maplibregl.Map, dynasty: Dynasty) {
         type: 'circle',
         source: eventSourceId,
         paint: {
-          'circle-radius': 22,
+          'circle-radius': 24,
           'circle-color': color,
           'circle-opacity': 0.35,
           'circle-blur': 0.6,

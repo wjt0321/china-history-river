@@ -162,6 +162,45 @@
   letter-spacing: 0.05em;
 }
 
+/* 事件 Popup 题跋 */
+.event-popup-tibei .maplibregl-popup-content {
+  background: rgba(245, 240, 230, 0.95);
+  color: #1a1915;
+  border-radius: 2px;
+  padding: 14px 16px;
+  font-family: var(--font-zh);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(139, 53, 53, 0.25);
+}
+
+.event-popup-tibei .maplibregl-popup-tip {
+  border-top-color: rgba(245, 240, 230, 0.95);
+}
+
+.event-popup-year {
+  font-size: 12px;
+  color: #8b3535;
+  margin-bottom: 4px;
+}
+
+.event-popup-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.event-popup-location {
+  font-size: 11px;
+  color: #5a5548;
+  margin-bottom: 8px;
+}
+
+.event-popup-desc {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #2a2925;
+}
+
 @media (max-width: 768px) {
   .map-attribution {
     bottom: 192px;
