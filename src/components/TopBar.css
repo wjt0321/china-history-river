@@ -11,8 +11,8 @@
   z-index: 9;
   background: linear-gradient(
     180deg,
-    rgba(5, 8, 16, 0.9) 0%,
-    rgba(5, 8, 16, 0.4) 60%,
+    rgba(12, 11, 9, 0.95) 0%,
+    rgba(12, 11, 9, 0.5) 60%,
     transparent 100%
   );
   backdrop-filter: blur(8px);
@@ -31,7 +31,7 @@
   justify-content: center;
   width: 38px;
   height: 38px;
-  background: linear-gradient(145deg, rgba(10,14,26,0.9) 0%, rgba(20,26,42,0.9) 100%);
+  background: linear-gradient(145deg, rgba(26,25,21,0.92) 0%, rgba(18,17,14,0.92) 100%);
   border: 1.5px solid var(--dynasty-color, var(--color-accent));
   border-radius: 6px;
   font-family: var(--font-zh);

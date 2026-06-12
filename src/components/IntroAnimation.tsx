@@ -41,7 +41,6 @@ export function IntroAnimation({ onComplete }: IntroAnimationProps) {
   // 印章落下
   useEffect(() => {
     if (phase !== 'seal') return
-    sound.playSeal()
     const t = setTimeout(() => setPhase('prompt'), 1400)
     return () => clearTimeout(t)
   }, [phase])
@@ -55,6 +54,7 @@ export function IntroAnimation({ onComplete }: IntroAnimationProps) {
 
   const handleEnter = () => {
     if (exiting) return
+    void sound.playSeal()
     setExiting(true)
     setTimeout(onComplete, 900)
   }

@@ -5,45 +5,94 @@
  */
 class SoundManager {
   private enabled = false
+  private ctx: AudioContext | null = null
+
+  private getCtx(): AudioContext | null {
+    if (typeof window === 'undefined') return null
+    if (this.ctx) return this.ctx
+    const AudioCtx = (window as any).AudioContext || (window as any).webkitAudioContext
+    if (!AudioCtx) return null
+    this.ctx = new AudioCtx()
+    return this.ctx
+  }
+
+  private async ensureRunning() {
+    const ctx = this.getCtx()
+    if (!ctx) return
+    if (ctx.state === 'suspended') {
+      try {
+        await ctx.resume()
+      } catch {
+        // ignore
+      }
+    }
+  }
 
   setEnabled(v: boolean) {
     this.enabled = v
+    if (v) {
+      void this.ensureRunning()
+    }
   }
 
   isEnabled() {
     return this.enabled
   }
 
-  private playTone(freq: number, duration: number, type: OscillatorType = 'sine') {
+  private async playTone(freq: number, duration: number, type: OscillatorType = 'sine') {
     if (!this.enabled) return
+    const ctx = this.getCtx()
+    if (!ctx) return
+    await this.ensureRunning()
+    if (ctx.state !== 'running') return
+
     try {
-      const AudioCtx = (window as any).AudioContext || (window as any).webkitAudioContext
-      if (!AudioCtx) return
-      const ctx = new AudioCtx()
+      const now = ctx.currentTime
       const osc = ctx.createOscillator()
       const gain = ctx.createGain()
       osc.type = type
-      osc.frequency.setValueAtTime(freq, ctx.currentTime)
-      gain.gain.setValueAtTime(0.0001, ctx.currentTime)
-      gain.gain.exponentialRampToValueAtTime(0.15, ctx.currentTime + 0.05)
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration)
+      osc.frequency.setValueAtTime(freq, now)
+      gain.gain.setValueAtTime(0.0001, now)
+      gain.gain.exponentialRampToValueAtTime(0.2, now + 0.03)
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + duration)
       osc.connect(gain)
       gain.connect(ctx.destination)
-      osc.start()
-      osc.stop(ctx.currentTime + duration)
+      osc.start(now)
+      osc.stop(now + duration)
     } catch {
       // ignore
     }
   }
 
   /** 印章落下：短促金石声 */
-  playSeal() {
-    this.playTone(180, 0.25, 'triangle')
+  async playSeal() {
+    await this.playTone(220, 0.18, 'triangle')
   }
 
   /** 疆域切换：低缓过渡音 */
-  playTransition() {
-    this.playTone(120, 0.6, 'sine')
+  async playTransition() {
+    const ctx = this.getCtx()
+    if (!ctx || !this.enabled) return
+    await this.ensureRunning()
+    if (ctx.state !== 'running') return
+
+    try {
+      const now = ctx.currentTime
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(110, now)
+      osc.frequency.exponentialRampToValueAtTime(130, now + 0.4)
+      gain.gain.setValueAtTime(0.0001, now)
+      gain.gain.exponentialRampToValueAtTime(0.12, now + 0.08)
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.55)
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.start(now)
+      osc.stop(now + 0.55)
+    } catch {
+      // ignore
+    }
   }
 }
 

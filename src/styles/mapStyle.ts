@@ -35,9 +35,9 @@ export const DARK_TECHNO_STYLE: StyleSpecification = {
       type: 'raster',
       source: 'carto-dark',
       paint: {
-        'raster-opacity': 0.22,
-        'raster-saturation': -0.9,
-        'raster-contrast': 0.05,
+        'raster-opacity': 0.45,
+        'raster-saturation': -0.8,
+        'raster-contrast': 0.1,
       },
     },
     {
@@ -45,8 +45,8 @@ export const DARK_TECHNO_STYLE: StyleSpecification = {
       type: 'fill',
       source: 'china-base',
       paint: {
-        'fill-color': '#151412',
-        'fill-opacity': 0.5,
+        'fill-color': '#1a1915',
+        'fill-opacity': 0.35,
       },
     },
     {
@@ -54,10 +54,10 @@ export const DARK_TECHNO_STYLE: StyleSpecification = {
       type: 'line',
       source: 'china-base',
       paint: {
-        'line-color': '#3a3a36',
-        'line-width': 0.8,
-        'line-opacity': 0.5,
-        'line-blur': 2,
+        'line-color': '#5a5548',
+        'line-width': 1,
+        'line-opacity': 0.55,
+        'line-blur': 1,
       },
     },
     {
@@ -65,10 +65,10 @@ export const DARK_TECHNO_STYLE: StyleSpecification = {
       type: 'line',
       source: 'china-base',
       paint: {
-        'line-color': '#2a5a6a',
-        'line-width': 4,
-        'line-opacity': 0.12,
-        'line-blur': 8,
+        'line-color': '#b8943a',
+        'line-width': 3,
+        'line-opacity': 0.1,
+        'line-blur': 6,
       },
     },
   ],

@@ -12,9 +12,9 @@
 .detail-panel.scroll-panel {
   background: linear-gradient(
     180deg,
-    rgba(10, 12, 20, 0.94) 0%,
-    rgba(12, 14, 26, 0.9) 50%,
-    rgba(10, 12, 20, 0.94) 100%
+    rgba(18, 17, 14, 0.96) 0%,
+    rgba(26, 25, 21, 0.94) 50%,
+    rgba(18, 17, 14, 0.96) 100%
   );
   border-left: none;
   padding: 0;
@@ -227,7 +227,7 @@
 .hero-img-wrap {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(180deg, #0c1020 0%, #141b30 50%, #0c1020 100%);
+  background: linear-gradient(180deg, #1a1915 0%, #23211c 50%, #1a1915 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -272,7 +272,7 @@
 .scene-img-wrap {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(180deg, #0c1020 0%, #141b30 50%, #0c1020 100%);
+  background: linear-gradient(180deg, #1a1915 0%, #23211c 50%, #1a1915 100%);
   display: flex;
   align-items: center;
   justify-content: center;

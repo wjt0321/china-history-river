@@ -115,8 +115,8 @@ export function MapView() {
     map.setPaintProperty('event-dots', 'circle-radius', [
       'case',
       ['==', ['get', 'id'], highlightedEventId || ''],
-      12,
-      8,
+      14,
+      10,
     ])
   }, [highlightedEventId, mapReady])
 
@@ -290,7 +290,13 @@ async function loadDynasty(map: maplibregl.Map, dynasty: Dynasty) {
       }
       const el = document.createElement('div')
       el.className = 'capital-seal'
-      el.innerHTML = `<span>${dynasty.capital}</span>`
+      // 取主要城市名：去除注释、多都城取第一个
+      const shortName = dynasty.capital
+        .split(/[\/（(]/)[0]
+        .trim()
+        .slice(0, 2)
+      el.innerHTML = `<span>${shortName}</span>`
+      el.title = `${dynasty.name} · 都城：${dynasty.capital}`
       el.style.setProperty('--capital-color', color)
       const marker = new maplibregl.Marker({ element: el, anchor: 'bottom' })
         .setLngLat(capitalCoords)
@@ -331,9 +337,9 @@ async function loadDynasty(map: maplibregl.Map, dynasty: Dynasty) {
         type: 'circle',
         source: eventSourceId,
         paint: {
-          'circle-radius': 24,
+          'circle-radius': 28,
           'circle-color': color,
-          'circle-opacity': 0.35,
+          'circle-opacity': 0.4,
           'circle-blur': 0.6,
         },
       })
@@ -343,12 +349,12 @@ async function loadDynasty(map: maplibregl.Map, dynasty: Dynasty) {
         type: 'circle',
         source: eventSourceId,
         paint: {
-          'circle-radius': 8,
+          'circle-radius': 10,
           'circle-color': color,
           'circle-opacity': 1,
-          'circle-stroke-color': '#fff',
+          'circle-stroke-color': '#f5f0e6',
           'circle-stroke-width': 2,
-          'circle-stroke-opacity': 0.8,
+          'circle-stroke-opacity': 0.9,
         },
       })
     }
