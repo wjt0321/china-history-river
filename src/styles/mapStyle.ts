@@ -27,7 +27,7 @@ export const DARK_TECHNO_STYLE: StyleSpecification = {
       id: 'background',
       type: 'background',
       paint: {
-        'background-color': '#0d1117',
+        'background-color': '#12110e',
       },
     },
     {
@@ -35,9 +35,9 @@ export const DARK_TECHNO_STYLE: StyleSpecification = {
       type: 'raster',
       source: 'carto-dark',
       paint: {
-        'raster-opacity': 0.55,
-        'raster-saturation': -0.6,
-        'raster-contrast': 0.1,
+        'raster-opacity': 0.22,
+        'raster-saturation': -0.9,
+        'raster-contrast': 0.05,
       },
     },
     {
@@ -45,8 +45,19 @@ export const DARK_TECHNO_STYLE: StyleSpecification = {
       type: 'fill',
       source: 'china-base',
       paint: {
-        'fill-color': '#0d1117',
-        'fill-opacity': 0.4,
+        'fill-color': '#151412',
+        'fill-opacity': 0.5,
+      },
+    },
+    {
+      id: 'china-base-coast',
+      type: 'line',
+      source: 'china-base',
+      paint: {
+        'line-color': '#3a3a36',
+        'line-width': 0.8,
+        'line-opacity': 0.5,
+        'line-blur': 2,
       },
     },
     {
@@ -54,20 +65,10 @@ export const DARK_TECHNO_STYLE: StyleSpecification = {
       type: 'line',
       source: 'china-base',
       paint: {
-        'line-color': '#2a5a5a',
-        'line-width': 1.2,
-        'line-opacity': 0.25,
+        'line-color': '#2a5a6a',
+        'line-width': 4,
+        'line-opacity': 0.12,
         'line-blur': 8,
-      },
-    },
-    {
-      id: 'china-base-line',
-      type: 'line',
-      source: 'china-base',
-      paint: {
-        'line-color': '#3a7a7a',
-        'line-width': 0.6,
-        'line-opacity': 0.35,
       },
     },
   ],
