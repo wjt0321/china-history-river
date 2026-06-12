@@ -50,7 +50,7 @@ function hexToRgba(hex: string, alpha: number): string {
     clean = clean.split('').map((c) => c + c).join('')
   }
   const bigint = parseInt(clean, 16)
-  if (Number.isNaN(bigint)) return `rgba(78, 205, 196, ${alpha})`
+  if (Number.isNaN(bigint)) return `rgba(184, 148, 58, ${alpha})`
   const r = (bigint >> 16) & 255
   const g = (bigint >> 8) & 255
   const b = bigint & 255
@@ -368,7 +368,7 @@ export function Timeline() {
         if (x === PADDING) ctx.moveTo(x, y)
         else ctx.lineTo(x, y)
       }
-      ctx.strokeStyle = 'rgba(78, 205, 196, 0.25)'
+      ctx.strokeStyle = 'rgba(184, 148, 58, 0.22)'
       ctx.lineWidth = 1.5
       ctx.stroke()
 
@@ -381,7 +381,7 @@ export function Timeline() {
         if (x === PADDING) ctx.moveTo(x, y)
         else ctx.lineTo(x, y)
       }
-      ctx.strokeStyle = 'rgba(78, 205, 196, 0.25)'
+      ctx.strokeStyle = 'rgba(184, 148, 58, 0.22)'
       ctx.lineWidth = 1.5
       ctx.stroke()
 
@@ -434,11 +434,11 @@ export function Timeline() {
 
         ctx.font = `${isActive ? 'bold 15px' : '500 12px'} var(--font-zh, "Noto Serif SC", "Microsoft YaHei", serif)`
         ctx.textAlign = 'center'
-        ctx.fillStyle = isActive ? '#f5f5f0' : 'rgba(200, 210, 220, 0.85)'
+        ctx.fillStyle = isActive ? '#f5f0e6' : 'rgba(168, 160, 144, 0.85)'
         ctx.fillText(dynasty.name, midX, labelY)
 
         ctx.font = '9px var(--font-mono, "SF Mono", Consolas, monospace)'
-        ctx.fillStyle = 'rgba(150, 165, 180, 0.6)'
+        ctx.fillStyle = 'rgba(168, 160, 144, 0.6)'
         const yearText = `${formatYearShort(dynasty.startYear)} — ${formatYearShort(dynasty.endYear)}`
         ctx.fillText(yearText, midX, labelY + 14)
       })
@@ -459,7 +459,7 @@ export function Timeline() {
       const trackH = 10
 
       // 背景轨道
-      ctx.fillStyle = 'rgba(255,255,255,0.04)'
+      ctx.fillStyle = 'rgba(245, 240, 230, 0.04)'
       ctx.fillRect(PADDING, trackY - trackH / 2, width - PADDING * 2, trackH)
 
       // 全时间轴朝代缩影
@@ -493,7 +493,7 @@ export function Timeline() {
 
       // 年份标签
       ctx.font = '9px var(--font-mono, "SF Mono", Consolas, monospace)'
-      ctx.fillStyle = 'rgba(150, 165, 180, 0.7)'
+      ctx.fillStyle = 'rgba(168, 160, 144, 0.7)'
       ctx.textAlign = 'left'
       ctx.fillText(formatYearShort(timeRange.startYear), PADDING, BRUSH_BOTTOM - 2)
       ctx.textAlign = 'right'
@@ -503,7 +503,7 @@ export function Timeline() {
       ctx.beginPath()
       ctx.moveTo(PADDING, BRUSH_TOP - 6)
       ctx.lineTo(width - PADDING, BRUSH_TOP - 6)
-      ctx.strokeStyle = 'rgba(78, 205, 196, 0.08)'
+      ctx.strokeStyle = hexToRgba(dynastyColor, 0.08)
       ctx.lineWidth = 1
       ctx.stroke()
     }
