@@ -1,8 +1,9 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { DARK_TECHNO_STYLE } from '@/styles/mapStyle'
 import { useAppStore } from '@/stores/appStore'
+import type { Dynasty } from '@/types/dynasty'
 import type { Feature, FeatureCollection } from 'geojson'
 
 /**
@@ -17,7 +18,10 @@ export function MapView() {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
   const isMapLoaded = useRef(false)
+  const popupRef = useRef<maplibregl.Popup | null>(null)
+  const [mapReady, setMapReady] = useState(false)
   const selectedDynasty = useAppStore((s) => s.selectedDynasty)
+  const highlightedEventId = useAppStore((s) => s.highlightedEventId)
 
   // 初始化地图
   useEffect(() => {
@@ -40,12 +44,14 @@ export function MapView() {
 
     map.on('load', () => {
       isMapLoaded.current = true
+      setMapReady(true)
       void loadDynasty(map, useAppStore.getState().selectedDynasty)
     })
 
     mapRef.current = map
 
     return () => {
+      popupRef.current?.remove()
       map.remove()
       mapRef.current = null
       isMapLoaded.current = false
@@ -58,6 +64,52 @@ export function MapView() {
     if (!map || !isMapLoaded.current) return
     void loadDynasty(map, selectedDynasty)
   }, [selectedDynasty])
+
+  // 事件标记 click → Popup
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapReady) return
+
+    const eventLayerId = 'event-dots'
+    const handleClick = (e: maplibregl.MapMouseEvent & { features?: maplibregl.MapGeoJSONFeature[] }) => {
+      const feature = e.features?.[0]
+      if (!feature) return
+      const props = feature.properties as Record<string, string>
+      const coordinates = (feature.geometry as unknown as GeoJSON.Point).coordinates as [number, number]
+      popupRef.current?.remove()
+      popupRef.current = new maplibregl.Popup({ offset: 12, closeButton: true })
+        .setLngLat(coordinates)
+        .setHTML(`
+          <div class="event-popup">
+            <div class="event-popup-year">${formatYear(Number(props.year))}</div>
+            <div class="event-popup-title">${props.title}</div>
+            ${props.location ? `<div class="event-popup-location">${props.location}</div>` : ''}
+            <div class="event-popup-desc">${props.desc}</div>
+          </div>
+        `)
+        .addTo(map)
+    }
+    const handleMouseEnter = () => { map.getCanvas().style.cursor = 'pointer' }
+    const handleMouseLeave = () => { map.getCanvas().style.cursor = '' }
+
+    map.on('click', eventLayerId, handleClick)
+    map.on('mouseenter', eventLayerId, handleMouseEnter)
+    map.on('mouseleave', eventLayerId, handleMouseLeave)
+
+    return () => {
+      map.off('click', eventLayerId, handleClick)
+      map.off('mouseenter', eventLayerId, handleMouseEnter)
+      map.off('mouseleave', eventLayerId, handleMouseLeave)
+    }
+  }, [mapReady])
+
+  // 高亮事件 → 标记半径变化
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapReady) return
+    const radius = highlightedEventId ? 10 : 6
+    map.setPaintProperty('event-dots', 'circle-radius', radius)
+  }, [highlightedEventId, mapReady])
 
   const dynastyColor = selectedDynasty.color || '#e63946'
 
@@ -95,7 +147,7 @@ function formatYear(y: number): string {
 /**
  * 加载朝代疆域（fade 切换 + 朝代专属色）
  */
-async function loadDynasty(map: maplibregl.Map, dynasty: { id: string; name: string; startYear: number; endYear: number; color?: string }) {
+async function loadDynasty(map: maplibregl.Map, dynasty: Dynasty) {
   try {
     const url = `/dynasties/${dynasty.id}.json?t=${Date.now()}`
     const res = await fetch(url)
@@ -254,6 +306,61 @@ async function loadDynasty(map: maplibregl.Map, dynasty: { id: string; name: str
           },
         })
       }
+    }
+
+    // === 事件标记 ===
+    const eventFeatures: Feature[] = []
+    for (const ev of dynasty.events || []) {
+      if (!ev.coords) continue
+      eventFeatures.push({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: ev.coords },
+        properties: {
+          id: `${dynasty.id}-${ev.year}-${ev.title}`,
+          year: ev.year,
+          title: ev.title,
+          desc: ev.desc,
+          location: ev.location || '',
+        },
+      })
+    }
+    const eventData: FeatureCollection = { type: 'FeatureCollection', features: eventFeatures }
+    const eventSourceId = 'event-markers'
+    const eventLayerId = 'event-dots'
+    const eventPulseId = 'event-pulse'
+
+    if (map.getSource(eventSourceId)) {
+      ;(map.getSource(eventSourceId) as maplibregl.GeoJSONSource).setData(eventData)
+      map.setPaintProperty(eventLayerId, 'circle-color', color)
+      map.setPaintProperty(eventPulseId, 'circle-color', color)
+    } else {
+      map.addSource(eventSourceId, { type: 'geojson', data: eventData })
+      // 脉冲外圈
+      map.addLayer({
+        id: eventPulseId,
+        type: 'circle',
+        source: eventSourceId,
+        paint: {
+          'circle-radius': 18,
+          'circle-color': color,
+          'circle-opacity': 0.18,
+          'circle-blur': 0.8,
+        },
+      })
+      // 核心圆点
+      map.addLayer({
+        id: eventLayerId,
+        type: 'circle',
+        source: eventSourceId,
+        paint: {
+          'circle-radius': 6,
+          'circle-color': color,
+          'circle-opacity': 0.95,
+          'circle-stroke-color': '#fff',
+          'circle-stroke-width': 1.5,
+          'circle-stroke-opacity': 0.6,
+        },
+      })
     }
 
     // 飞行到中心
