@@ -20,6 +20,8 @@ interface AppState {
   highlightedEventId: string | null
   /** 时间轴 brush 缩放范围 */
   timeRange: TimeRange
+  /** 音效开关 */
+  soundEnabled: boolean
 
   setSelected: (id: string) => void
   setHovered: (id: string | null) => void
@@ -28,6 +30,7 @@ interface AppState {
   setHighlightedEvent: (id: string | null) => void
   setTimeRange: (range: TimeRange) => void
   resetTimeRange: () => void
+  setSoundEnabled: (v: boolean) => void
 }
 
 const findDynasty = (id: string): Dynasty => {
@@ -45,6 +48,7 @@ export const useAppStore = create<AppState>((set) => ({
   isDetailOpen: false,
   highlightedEventId: null,
   timeRange: { ...FULL_TIME_RANGE },
+  soundEnabled: false,
 
   setSelected: (id) =>
     set({
@@ -59,4 +63,5 @@ export const useAppStore = create<AppState>((set) => ({
   setHighlightedEvent: (id) => set({ highlightedEventId: id }),
   setTimeRange: (range) => set({ timeRange: range }),
   resetTimeRange: () => set({ timeRange: { ...FULL_TIME_RANGE } }),
+  setSoundEnabled: (v) => set({ soundEnabled: v }),
 }))

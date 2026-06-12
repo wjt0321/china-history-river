@@ -3,6 +3,7 @@ import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { DARK_TECHNO_STYLE } from '@/styles/mapStyle'
 import { useAppStore } from '@/stores/appStore'
+import { sound } from '@/utils/sound'
 import type { Dynasty } from '@/types/dynasty'
 import type { Feature, FeatureCollection } from 'geojson'
 
@@ -351,6 +352,9 @@ async function loadDynasty(map: maplibregl.Map, dynasty: Dynasty) {
         },
       })
     }
+
+    // 播放切换音效（如开启）
+    sound.playTransition()
 
     // 飞行到中心
     map.flyTo({

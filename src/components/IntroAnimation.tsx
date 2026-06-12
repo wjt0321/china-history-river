@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { DYNASTIES_BY_TIME } from '@/data/dynasties'
+import { sound } from '@/utils/sound'
 import './IntroAnimation.css'
 
 interface IntroAnimationProps {
@@ -40,6 +41,7 @@ export function IntroAnimation({ onComplete }: IntroAnimationProps) {
   // 印章落下
   useEffect(() => {
     if (phase !== 'seal') return
+    sound.playSeal()
     const t = setTimeout(() => setPhase('prompt'), 1400)
     return () => clearTimeout(t)
   }, [phase])

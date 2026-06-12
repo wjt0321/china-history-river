@@ -1,5 +1,6 @@
 import { DYNASTIES_BY_TIME } from '@/data/dynasties'
 import { useAppStore } from '@/stores/appStore'
+import { sound } from '@/utils/sound'
 import { useState } from 'react'
 import './TopBar.css'
 
@@ -21,7 +22,7 @@ const SEAL_CHARS: Record<string, string> = {
 }
 
 export function TopBar() {
-  const { selectedDynasty, isDetailOpen, toggleDetail } = useAppStore()
+  const { selectedDynasty, isDetailOpen, soundEnabled, toggleDetail, setSoundEnabled } = useAppStore()
   const [showDynastyNav, setShowDynastyNav] = useState(false)
 
   const sealChar = SEAL_CHARS[selectedDynasty.id] || '史'
@@ -88,6 +89,17 @@ export function TopBar() {
       </nav>
 
       <div className="top-bar-right">
+        <button
+          className="sound-toggle"
+          onClick={() => {
+            const next = !soundEnabled
+            setSoundEnabled(next)
+            sound.setEnabled(next)
+          }}
+          title={soundEnabled ? '关闭音效' : '开启音效'}
+        >
+          {soundEnabled ? '🔊' : '🔇'}
+        </button>
         <button
           className={`detail-toggle ${isDetailOpen ? 'is-active' : ''}`}
           onClick={toggleDetail}
