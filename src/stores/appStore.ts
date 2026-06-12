@@ -11,11 +11,14 @@ interface AppState {
   hoveredDynastyId: string | null
   /** 详情面板展开状态 */
   isDetailOpen: boolean
+  /** 当前高亮的事件 id（用于地图标记联动） */
+  highlightedEventId: string | null
 
   setSelected: (id: string) => void
   setHovered: (id: string | null) => void
   toggleDetail: () => void
   closeDetail: () => void
+  setHighlightedEvent: (id: string | null) => void
 }
 
 const findDynasty = (id: string): Dynasty => {
@@ -27,14 +30,17 @@ export const useAppStore = create<AppState>((set) => ({
   selectedDynasty: findDynasty(DYNASTIES[0].id),
   hoveredDynastyId: null,
   isDetailOpen: false,
+  highlightedEventId: null,
 
   setSelected: (id) =>
     set({
       selectedDynastyId: id,
       selectedDynasty: findDynasty(id),
       isDetailOpen: true,
+      highlightedEventId: null,
     }),
   setHovered: (id) => set({ hoveredDynastyId: id }),
   toggleDetail: () => set((s) => ({ isDetailOpen: !s.isDetailOpen })),
   closeDetail: () => set({ isDetailOpen: false }),
+  setHighlightedEvent: (id) => set({ highlightedEventId: id }),
 }))
