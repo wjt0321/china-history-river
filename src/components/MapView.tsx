@@ -103,12 +103,16 @@ export function MapView() {
     }
   }, [mapReady])
 
-  // 高亮事件 → 标记半径变化
+  // 高亮事件 → 对应标记半径变化
   useEffect(() => {
     const map = mapRef.current
     if (!map || !mapReady) return
-    const radius = highlightedEventId ? 10 : 6
-    map.setPaintProperty('event-dots', 'circle-radius', radius)
+    map.setPaintProperty('event-dots', 'circle-radius', [
+      'case',
+      ['==', ['get', 'id'], highlightedEventId || ''],
+      10,
+      6,
+    ])
   }, [highlightedEventId, mapReady])
 
   const dynastyColor = selectedDynasty.color || '#e63946'
