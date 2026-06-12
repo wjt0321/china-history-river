@@ -2,7 +2,7 @@
   position: absolute;
   top: 0;
   right: 0;
-  bottom: 200px;
+  bottom: 210px;
   width: var(--panel-width, 440px);
   z-index: 8;
   border-radius: 0;

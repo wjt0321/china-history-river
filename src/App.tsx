@@ -1,13 +1,17 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { MapView } from '@/components/MapView'
 import { Timeline } from '@/components/Timeline'
 import { DetailPanel } from '@/components/DetailPanel'
 import { TopBar } from '@/components/TopBar'
 import { AtmosphereParticles } from '@/components/AtmosphereParticles'
+import { IntroAnimation } from '@/components/IntroAnimation'
+import { InkDecorations } from '@/components/InkDecorations'
+import { CustomCursor } from '@/components/CustomCursor'
 import { useAppStore } from '@/stores/appStore'
 
 function App() {
   const selectedDynasty = useAppStore((s) => s.selectedDynasty)
+  const [introDone, setIntroDone] = useState(false)
 
   // 动态注入朝代主题色到 CSS 变量
   useEffect(() => {
@@ -26,6 +30,9 @@ function App() {
       <TopBar />
       <DetailPanel />
       <Timeline />
+      <InkDecorations />
+      <CustomCursor />
+      {!introDone && <IntroAnimation onComplete={() => setIntroDone(true)} />}
     </div>
   )
 }

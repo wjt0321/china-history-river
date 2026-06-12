@@ -1,17 +1,42 @@
 import { useEffect, useRef } from 'react'
 import { DYNASTIES_BY_TIME } from '@/data/dynasties'
 import { useAppStore } from '@/stores/appStore'
+import { MIN_YEAR, MAX_YEAR } from '@/stores/appStore'
 import './Timeline.css'
 
-const MIN_YEAR = -2150
-const MAX_YEAR = 1950
-const YEAR_RANGE = MAX_YEAR - MIN_YEAR
+const FULL_YEAR_RANGE = MAX_YEAR - MIN_YEAR
 const PADDING = 40
-const CANVAS_HEIGHT = 180
-const CENTER_Y = 100
+const CANVAS_HEIGHT = 200
+const CENTER_Y = 96
+const BRUSH_TOP = 154
+const BRUSH_BOTTOM = 192
+const BRUSH_CENTER = 173
+const HANDLE_W = 6
+const MIN_BRUSH_SPAN = 120 // 最小缩放窗口 120 年
+const DEFAULT_BRUSH_SPAN = 1200
 
-function yearToX(year: number, width: number): number {
-  return PADDING + ((year - MIN_YEAR) / YEAR_RANGE) * (width - PADDING * 2)
+interface Segment {
+  dynasty: (typeof DYNASTIES_BY_TIME)[number]
+  startX: number
+  endX: number
+  midX: number
+  riverHalfWidth: number
+  index: number
+}
+
+/** 全时间轴 → x（用于 brush 条） */
+function fullYearToX(year: number, width: number): number {
+  return PADDING + ((year - MIN_YEAR) / FULL_YEAR_RANGE) * (width - PADDING * 2)
+}
+
+/** 当前视图时间轴 → x（用于主河流） */
+function viewYearToX(year: number, width: number, startYear: number, endYear: number): number {
+  const range = endYear - startYear
+  return PADDING + ((year - startYear) / range) * (width - PADDING * 2)
+}
+
+function xToFullYear(x: number, width: number): number {
+  return MIN_YEAR + ((x - PADDING) / (width - PADDING * 2)) * FULL_YEAR_RANGE
 }
 
 function formatYearShort(y: number): string {
@@ -32,13 +57,18 @@ function hexToRgba(hex: string, alpha: number): string {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }
 
-interface Segment {
-  dynasty: (typeof DYNASTIES_BY_TIME)[number]
-  startX: number
-  endX: number
-  midX: number
-  riverHalfWidth: number
-  index: number
+function clampRange(start: number, end: number): { startYear: number; endYear: number } {
+  let s = Math.max(MIN_YEAR, Math.min(MAX_YEAR - MIN_BRUSH_SPAN, start))
+  let e = Math.max(MIN_YEAR + MIN_BRUSH_SPAN, Math.min(MAX_YEAR, end))
+  if (e - s < MIN_BRUSH_SPAN) {
+    if (s + MIN_BRUSH_SPAN > MAX_YEAR) {
+      s = MAX_YEAR - MIN_BRUSH_SPAN
+      e = MAX_YEAR
+    } else {
+      e = s + MIN_BRUSH_SPAN
+    }
+  }
+  return { startYear: s, endYear: e }
 }
 
 export function Timeline() {
@@ -69,30 +99,92 @@ export function Timeline() {
     window.addEventListener('resize', resize)
 
     const getDynastyAtX = (x: number) => {
+      const { timeRange } = useAppStore.getState()
       for (const d of DYNASTIES_BY_TIME) {
-        const startX = yearToX(d.startYear, width)
-        const endX = yearToX(d.endYear, width)
+        const startX = viewYearToX(d.startYear, width, timeRange.startYear, timeRange.endYear)
+        const endX = viewYearToX(d.endYear, width, timeRange.startYear, timeRange.endYear)
         if (x >= startX && x <= endX) return d
       }
       return null
     }
 
     let mouseX = -1
+    let isInBrush = false
+
+    // brush 拖拽状态
+    const brushDrag = {
+      active: false,
+      mode: 'none' as 'none' | 'pan' | 'resize-left' | 'resize-right' | 'create',
+      startX: 0,
+      startRangeStart: 0,
+      startRangeEnd: 0,
+    }
+
+    const updateCursor = (x: number, y: number) => {
+      if (y < BRUSH_TOP) {
+        const dynasty = getDynastyAtX(x)
+        canvas.style.cursor = dynasty ? 'pointer' : 'default'
+        return
+      }
+      const { timeRange } = useAppStore.getState()
+      const wx1 = fullYearToX(timeRange.startYear, width)
+      const wx2 = fullYearToX(timeRange.endYear, width)
+      if (Math.abs(x - wx1) < HANDLE_W + 4 || Math.abs(x - wx2) < HANDLE_W + 4) {
+        canvas.style.cursor = 'col-resize'
+      } else if (x >= wx1 && x <= wx2) {
+        canvas.style.cursor = 'grab'
+      } else {
+        canvas.style.cursor = 'default'
+      }
+    }
 
     const handleMouseMove = (e: MouseEvent) => {
       const rect = canvas.getBoundingClientRect()
-      mouseX = e.clientX - rect.left
-      const dynasty = getDynastyAtX(mouseX)
+      const x = e.clientX - rect.left
+      const y = e.clientY - rect.top
+      mouseX = x
+      isInBrush = y >= BRUSH_TOP
+
+      if (brushDrag.active) {
+        const { mode, startX, startRangeStart, startRangeEnd } = brushDrag
+        if (mode === 'pan') {
+          const px = (x - startX) / (width - PADDING * 2) * FULL_YEAR_RANGE
+          let s = startRangeStart - px
+          let e = startRangeEnd - px
+          if (e > MAX_YEAR) { const d = e - MAX_YEAR; e -= d; s -= d }
+          if (s < MIN_YEAR) { const d = MIN_YEAR - s; s += d; e += d }
+          useAppStore.getState().setTimeRange(clampRange(s, e))
+        } else if (mode === 'resize-left') {
+          const year = xToFullYear(x, width)
+          useAppStore.getState().setTimeRange(clampRange(year, startRangeEnd))
+        } else if (mode === 'resize-right') {
+          const year = xToFullYear(x, width)
+          useAppStore.getState().setTimeRange(clampRange(startRangeStart, year))
+        } else if (mode === 'create') {
+          const center = xToFullYear(x, width)
+          const half = DEFAULT_BRUSH_SPAN / 2
+          useAppStore.getState().setTimeRange(clampRange(center - half, center + half))
+        }
+        return
+      }
+
+      updateCursor(x, y)
+
+      if (isInBrush) return
+
+      const dynasty = getDynastyAtX(x)
       const currentHover = useAppStore.getState().hoveredDynastyId
       const newHover = dynasty ? dynasty.id : null
       if (currentHover !== newHover) {
         useAppStore.getState().setHovered(newHover)
       }
-      canvas.style.cursor = dynasty ? 'pointer' : 'default'
     }
 
     const handleMouseLeave = () => {
       mouseX = -1
+      isInBrush = false
+      brushDrag.active = false
+      brushDrag.mode = 'none'
       const currentHover = useAppStore.getState().hoveredDynastyId
       if (currentHover !== null) {
         useAppStore.getState().setHovered(null)
@@ -100,9 +192,43 @@ export function Timeline() {
       canvas.style.cursor = 'default'
     }
 
-    const handleClick = (e: MouseEvent) => {
+    const handleMouseDown = (e: MouseEvent) => {
       const rect = canvas.getBoundingClientRect()
       const x = e.clientX - rect.left
+      const y = e.clientY - rect.top
+      if (y < BRUSH_TOP) return
+
+      const { timeRange } = useAppStore.getState()
+      const wx1 = fullYearToX(timeRange.startYear, width)
+      const wx2 = fullYearToX(timeRange.endYear, width)
+
+      brushDrag.active = true
+      brushDrag.startX = x
+      brushDrag.startRangeStart = timeRange.startYear
+      brushDrag.startRangeEnd = timeRange.endYear
+
+      if (Math.abs(x - wx1) < HANDLE_W + 4) {
+        brushDrag.mode = 'resize-left'
+      } else if (Math.abs(x - wx2) < HANDLE_W + 4) {
+        brushDrag.mode = 'resize-right'
+      } else if (x >= wx1 && x <= wx2) {
+        brushDrag.mode = 'pan'
+      } else {
+        brushDrag.mode = 'create'
+      }
+    }
+
+    const handleMouseUp = () => {
+      brushDrag.active = false
+      brushDrag.mode = 'none'
+    }
+
+    const handleClick = (e: MouseEvent) => {
+      if (brushDrag.active) return
+      const rect = canvas.getBoundingClientRect()
+      const x = e.clientX - rect.left
+      const y = e.clientY - rect.top
+      if (y >= BRUSH_TOP) return
       const dynasty = getDynastyAtX(x)
       if (dynasty) {
         useAppStore.getState().setSelected(dynasty.id)
@@ -111,6 +237,8 @@ export function Timeline() {
 
     canvas.addEventListener('mousemove', handleMouseMove)
     canvas.addEventListener('mouseleave', handleMouseLeave)
+    canvas.addEventListener('mousedown', handleMouseDown)
+    window.addEventListener('mouseup', handleMouseUp)
     canvas.addEventListener('click', handleClick)
 
     let animId = 0
@@ -118,7 +246,6 @@ export function Timeline() {
     const getHalfWidthAtX = (x: number, segments: Segment[]) => {
       const seg = segments.find((s) => x >= s.startX && x <= s.endX)
       if (!seg) {
-        // Use nearest segment for padding areas
         return segments.reduce(
           (closest, s) =>
             Math.abs(x - s.midX) < Math.abs(x - closest.midX) ? s : closest,
@@ -147,7 +274,7 @@ export function Timeline() {
         return
       }
 
-      const { selectedDynastyId, hoveredDynastyId } = useAppStore.getState()
+      const { selectedDynastyId, hoveredDynastyId, timeRange } = useAppStore.getState()
 
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
       ctx.clearRect(0, 0, width, CANVAS_HEIGHT)
@@ -155,12 +282,11 @@ export function Timeline() {
       const time = performance.now() / 1000
       const phase = time * 0.4
 
-      // Pre-compute segments
+      // 当前视图下的河段
       const segments: Segment[] = DYNASTIES_BY_TIME.map((d, i) => {
-        const startX = yearToX(d.startYear, width)
-        const endX = yearToX(d.endYear, width)
-        const riverHalfWidth =
-          Math.min(48, Math.max(10, (d.peakArea || 100) / 30)) / 2
+        const startX = viewYearToX(d.startYear, width, timeRange.startYear, timeRange.endYear)
+        const endX = viewYearToX(d.endYear, width, timeRange.startYear, timeRange.endYear)
+        const riverHalfWidth = Math.min(48, Math.max(10, (d.peakArea || 100) / 30)) / 2
         return {
           dynasty: d,
           startX,
@@ -171,7 +297,7 @@ export function Timeline() {
         }
       })
 
-      // 1. River fills per segment with gradient blending
+      // 1. 河流填充
       segments.forEach((seg) => {
         const { dynasty, startX, endX, riverHalfWidth } = seg
         const prevSeg = segments[seg.index - 1]
@@ -181,7 +307,6 @@ export function Timeline() {
 
         ctx.beginPath()
 
-        // Top bank
         for (let x = startX; x <= endX; x += 1) {
           let hw = riverHalfWidth
           if (prevSeg && x < startX + 20) {
@@ -197,7 +322,6 @@ export function Timeline() {
           else ctx.lineTo(x, CENTER_Y + wave - hw)
         }
 
-        // Bottom bank (backwards)
         for (let x = endX; x >= startX; x -= 1) {
           let hw = riverHalfWidth
           if (prevSeg && x < startX + 20) {
@@ -216,7 +340,7 @@ export function Timeline() {
 
         const color = dynasty.color || '#4ECDC4'
         const baseOpacity = isActive ? 0.5 : isHovered ? 0.45 : 0.3
-        const segWidth = endX - startX
+        const segWidth = Math.max(1, endX - startX)
         const blendRatio = Math.min(0.2, 20 / segWidth)
 
         const grad = ctx.createLinearGradient(startX, 0, endX, 0)
@@ -235,7 +359,7 @@ export function Timeline() {
         ctx.fill()
       })
 
-      // 2. Continuous top bank outline
+      // 2. 连续上岸边线
       ctx.beginPath()
       for (let x = PADDING; x <= width - PADDING; x += 1) {
         const hw = getHalfWidthAtX(x, segments)
@@ -248,7 +372,7 @@ export function Timeline() {
       ctx.lineWidth = 1.5
       ctx.stroke()
 
-      // 3. Continuous bottom bank outline
+      // 3. 连续下岸边线
       ctx.beginPath()
       for (let x = PADDING; x <= width - PADDING; x += 1) {
         const hw = getHalfWidthAtX(x, segments)
@@ -261,7 +385,7 @@ export function Timeline() {
       ctx.lineWidth = 1.5
       ctx.stroke()
 
-      // 4. Center line per segment (dynasty color)
+      // 4. 中心线
       segments.forEach((seg) => {
         const { dynasty, startX, endX } = seg
         const isActive = dynasty.id === selectedDynastyId
@@ -280,7 +404,7 @@ export function Timeline() {
         ctx.stroke()
       })
 
-      // 5. Active segment pulse / glow
+      // 5. 当前河段脉冲
       const activeSeg = segments.find((s) => s.dynasty.id === selectedDynastyId)
       if (activeSeg) {
         const pulse = Math.sin(time * 2.5) * 0.15 + 0.35
@@ -294,36 +418,94 @@ export function Timeline() {
           if (x === activeSeg.startX) ctx.moveTo(x, y)
           else ctx.lineTo(x, y)
         }
-        ctx.strokeStyle = hexToRgba(
-          activeSeg.dynasty.color || '#4ECDC4',
-          pulse + 0.4,
-        )
+        ctx.strokeStyle = hexToRgba(activeSeg.dynasty.color || '#4ECDC4', pulse + 0.4)
         ctx.lineWidth = 5
         ctx.stroke()
         ctx.restore()
       }
 
-      // 6. Labels
+      // 6. 标签
       segments.forEach((seg) => {
         const { dynasty, midX, index } = seg
         const isActive = dynasty.id === selectedDynastyId
-        const labelY =
-          index % 2 === 0 ? CENTER_Y - 45 : CENTER_Y + 55
+        const segWidth = seg.endX - seg.startX
+        if (segWidth < 36) return // 太窄不显示标签
+        const labelY = index % 2 === 0 ? CENTER_Y - 45 : CENTER_Y + 55
 
-        // Dynasty name
         ctx.font = `${isActive ? 'bold 15px' : '500 12px'} var(--font-zh, "Noto Serif SC", "Microsoft YaHei", serif)`
         ctx.textAlign = 'center'
         ctx.fillStyle = isActive ? '#f5f5f0' : 'rgba(200, 210, 220, 0.85)'
         ctx.fillText(dynasty.name, midX, labelY)
 
-        // Year range
         ctx.font = '9px var(--font-mono, "SF Mono", Consolas, monospace)'
         ctx.fillStyle = 'rgba(150, 165, 180, 0.6)'
         const yearText = `${formatYearShort(dynasty.startYear)} — ${formatYearShort(dynasty.endYear)}`
         ctx.fillText(yearText, midX, labelY + 14)
       })
 
+      // 7. Brush 条（底部缩放控制器）
+      drawBrush(ctx, width, timeRange, selectedDynastyId)
+
       animId = requestAnimationFrame(draw)
+    }
+
+    const drawBrush = (
+      ctx: CanvasRenderingContext2D,
+      width: number,
+      timeRange: { startYear: number; endYear: number },
+      selectedDynastyId: string,
+    ) => {
+      const trackY = BRUSH_CENTER
+      const trackH = 10
+
+      // 背景轨道
+      ctx.fillStyle = 'rgba(255,255,255,0.04)'
+      ctx.fillRect(PADDING, trackY - trackH / 2, width - PADDING * 2, trackH)
+
+      // 全时间轴朝代缩影
+      DYNASTIES_BY_TIME.forEach((d) => {
+        const sx = fullYearToX(d.startYear, width)
+        const ex = fullYearToX(d.endYear, width)
+        const isActive = d.id === selectedDynastyId
+        ctx.fillStyle = hexToRgba(d.color || '#4ECDC4', isActive ? 0.55 : 0.28)
+        ctx.fillRect(sx, trackY - trackH / 2, Math.max(1, ex - sx), trackH)
+      })
+
+      // 当前窗口
+      const wx1 = fullYearToX(timeRange.startYear, width)
+      const wx2 = fullYearToX(timeRange.endYear, width)
+      const dynastyColor = DYNASTIES_BY_TIME.find((d) => d.id === selectedDynastyId)?.color || '#4ECDC4'
+
+      ctx.save()
+      ctx.fillStyle = hexToRgba(dynastyColor, 0.14)
+      ctx.strokeStyle = hexToRgba(dynastyColor, 0.7)
+      ctx.lineWidth = 1
+      ctx.shadowColor = dynastyColor
+      ctx.shadowBlur = 10
+      ctx.fillRect(wx1, trackY - trackH / 2 - 2, Math.max(1, wx2 - wx1), trackH + 4)
+      ctx.strokeRect(wx1, trackY - trackH / 2 - 2, Math.max(1, wx2 - wx1), trackH + 4)
+      ctx.restore()
+
+      // 左右把手
+      ctx.fillStyle = hexToRgba(dynastyColor, 0.9)
+      ctx.fillRect(wx1 - HANDLE_W / 2, trackY - trackH / 2 - 2, HANDLE_W, trackH + 4)
+      ctx.fillRect(wx2 - HANDLE_W / 2, trackY - trackH / 2 - 2, HANDLE_W, trackH + 4)
+
+      // 年份标签
+      ctx.font = '9px var(--font-mono, "SF Mono", Consolas, monospace)'
+      ctx.fillStyle = 'rgba(150, 165, 180, 0.7)'
+      ctx.textAlign = 'left'
+      ctx.fillText(formatYearShort(timeRange.startYear), PADDING, BRUSH_BOTTOM - 2)
+      ctx.textAlign = 'right'
+      ctx.fillText(formatYearShort(timeRange.endYear), width - PADDING, BRUSH_BOTTOM - 2)
+
+      // 分隔线
+      ctx.beginPath()
+      ctx.moveTo(PADDING, BRUSH_TOP - 6)
+      ctx.lineTo(width - PADDING, BRUSH_TOP - 6)
+      ctx.strokeStyle = 'rgba(78, 205, 196, 0.08)'
+      ctx.lineWidth = 1
+      ctx.stroke()
     }
 
     animId = requestAnimationFrame(draw)
@@ -333,9 +515,13 @@ export function Timeline() {
       window.removeEventListener('resize', resize)
       canvas.removeEventListener('mousemove', handleMouseMove)
       canvas.removeEventListener('mouseleave', handleMouseLeave)
+      canvas.removeEventListener('mousedown', handleMouseDown)
+      window.removeEventListener('mouseup', handleMouseUp)
       canvas.removeEventListener('click', handleClick)
     }
   }, [])
+
+  const handleReset = () => useAppStore.getState().resetTimeRange()
 
   return (
     <div className="timeline">
@@ -343,6 +529,9 @@ export function Timeline() {
         <span className="timeline-title">历史长河</span>
         <span className="timeline-divider" />
         <span className="timeline-subtitle">FIVE THOUSAND YEARS · CHINA</span>
+        <button className="timeline-reset" onClick={handleReset} aria-label="重置时间轴">
+          重置
+        </button>
       </div>
       <canvas ref={canvasRef} className="timeline-canvas" />
     </div>

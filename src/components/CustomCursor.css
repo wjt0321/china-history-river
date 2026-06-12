@@ -1,0 +1,103 @@
+.custom-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  z-index: 9999;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  opacity: 0;
+  transition: opacity 0.25s var(--ease-out);
+}
+
+.custom-cursor.is-visible {
+  opacity: 1;
+}
+
+.cursor-ring {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--cursor-color, var(--color-accent));
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--cursor-color, var(--color-accent));
+  transition:
+    width 0.25s var(--ease-out),
+    height 0.25s var(--ease-out),
+    top 0.25s var(--ease-out),
+    left 0.25s var(--ease-out),
+    border-color 0.6s var(--ease-out),
+    box-shadow 0.6s var(--ease-out);
+}
+
+.cursor-dot {
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  width: 4px;
+  height: 4px;
+  background: var(--cursor-color, var(--color-accent));
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--cursor-color, var(--color-accent));
+  transition:
+    transform 0.25s var(--ease-out),
+    background 0.6s var(--ease-out),
+    box-shadow 0.6s var(--ease-out);
+}
+
+/* 悬停可交互元素：放大 */
+.custom-cursor.is-hovering .cursor-ring {
+  top: -22px;
+  left: -22px;
+  width: 44px;
+  height: 44px;
+  border-color: var(--cursor-color, var(--color-accent));
+  box-shadow: 0 0 22px var(--cursor-color, var(--color-accent));
+}
+
+.custom-cursor.is-hovering .cursor-dot {
+  transform: scale(1.6);
+}
+
+/* 按下：收缩 */
+.custom-cursor.is-pressed .cursor-ring {
+  transform: scale(0.85);
+}
+
+.custom-cursor.is-pressed .cursor-dot {
+  transform: scale(0.7);
+}
+
+/* 仅在自定义光标激活时隐藏系统光标，鼠标离开窗口后自动恢复 */
+html.cursor-hidden,
+html.cursor-hidden body,
+html.cursor-hidden .app,
+html.cursor-hidden button,
+html.cursor-hidden a,
+html.cursor-hidden canvas,
+html.cursor-hidden input,
+html.cursor-hidden textarea,
+html.cursor-hidden select {
+  cursor: none !important;
+}
+
+/* 触屏或粗指针设备禁用自定义光标 */
+@media (hover: none), (pointer: coarse) {
+  .custom-cursor {
+    display: none;
+  }
+  html.cursor-hidden,
+  html.cursor-hidden body,
+  html.cursor-hidden .app,
+  html.cursor-hidden button,
+  html.cursor-hidden a,
+  html.cursor-hidden canvas,
+  html.cursor-hidden input,
+  html.cursor-hidden textarea,
+  html.cursor-hidden select {
+    cursor: auto !important;
+  }
+}

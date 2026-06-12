@@ -191,11 +191,16 @@ D:\china-history-river\
 - [x] 详情面板多 Tab（概览 / 帝王 / 大事 / 文化 / 疆域）
 - **交付物**：可深度浏览的完整应用
 
-### 阶段 3 — 灵魂（视觉打磨）
-- [ ] 入场动画（黑屏 → 逐朝代亮起）
-- [ ] 印章 / 墨迹 SVG 点缀
-- [ ] 自定义光标
-- [ ] 时间轴 brush 缩放
+### 阶段 3 — 灵魂（视觉打磨）✅ 已完成
+- [x] 入场动画（黑屏 → 逐朝代亮起）
+  - `src/components/IntroAnimation.tsx`：全屏黑屏遮罩，14 个朝代名按时间顺序逐一亮起，中央印章落下盖印，点击/自动进入主界面。
+- [x] 印章 / 墨迹 SVG 点缀
+  - `src/components/InkDecorations.tsx`：左上角竖排小印章、右上角墨迹飞白、右下角水墨晕染、左侧竖排款识，均随朝代色联动。
+- [x] 自定义光标
+  - `src/components/CustomCursor.tsx`：光晕圆环光标，悬停可交互元素时放大并显示当前朝代色；触屏设备自动禁用。
+- [x] 时间轴 brush 缩放
+  - `src/components/Timeline.tsx` 底部新增 brush 条：可拖拽窗口平移、拖拽左右把手缩放、点击空白处新建窗口、点击"重置"恢复全时间轴。
+  - `src/stores/appStore.ts` 新增 `timeRange` 状态与 `setTimeRange` / `resetTimeRange` 方法。
 - **交付物**：作品集级视觉成品
 
 ### 阶段 4 — 叙事模式（可选，锦上添花）

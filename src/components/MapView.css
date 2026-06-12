@@ -125,11 +125,17 @@
 
 .map-attribution {
   position: absolute;
-  bottom: 8px;
+  bottom: 212px;
   right: 12px;
   font-size: 10px;
   color: var(--color-text-faint);
   font-family: var(--font-mono);
   letter-spacing: 1px;
   z-index: 4;
+}
+
+@media (max-width: 768px) {
+  .map-attribution {
+    bottom: 192px;
+  }
 }

@@ -202,11 +202,16 @@ Zustand store（`src/stores/appStore.ts`）只存三个核心状态：
 ## 阶段规划（当前进度）
 
 - **阶段 1（已完成）**：核心可运行。14 朝代数据 + 地图 + 时间轴 + 详情面板 + 粒子 + 都城标记 + PD 图片。
-- **阶段 2（未开始）**：内容深度。皇帝下钻、事件地图标注、数据卡片、详情面板多 Tab 完整内容。
-- **阶段 3（未开始）**：视觉打磨。入场动画、SVG 印章/墨迹点缀、自定义光标、时间轴 brush 缩放。
+- **阶段 2（已完成）**：内容深度。皇帝下钻、事件地图标注、数据卡片、详情面板多 Tab 完整内容。
+- **阶段 3（已完成）**：视觉打磨。入场动画、SVG 印章/墨迹点缀、自定义光标、时间轴 brush 缩放。
 - **阶段 4（可选）**：叙事模式。滚动驱动史诗叙事、配乐。
 
-**当前代码只完成了阶段 1**。详情面板虽已有 5 个 Tab 的 UI 框架，但部分朝代的数据字段（如 `relatedPersons`、`figureIds`、`sceneIds`）尚未完全填充。
+**当前代码已完成阶段 1~3**。新增组件：
+- `src/components/IntroAnimation.tsx`：黑屏 → 逐朝代亮起 → 印章落下 → 进入主界面。
+- `src/components/InkDecorations.tsx`：印章 / 墨迹 SVG 装饰层。
+- `src/components/CustomCursor.tsx`：朝代色光晕自定义光标（触屏自动禁用）。
+- `src/components/Timeline.tsx`：底部 brush 条支持拖拽平移/缩放/重置。
+- `src/stores/appStore.ts`：新增 `timeRange` 状态。
 
 ---
 
