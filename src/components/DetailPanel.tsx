@@ -337,18 +337,26 @@ function EmperorsTab({ d }: { d: Dynasty }) {
 }
 
 function EventsTab({ d }: { d: Dynasty }) {
+  const { setHighlightedEvent } = useAppStore()
   const sorted = [...d.events].sort((a, b) => a.year - b.year)
+  const makeEventId = (ev: HistoricalEvent) => `${d.id}-${ev.year}-${ev.title}`
   return (
     <>
       <section className="detail-section">
         <h3 className="section-title">大事年表 <span className="section-count">共 {sorted.length} 件</span></h3>
         <ul className="timeline-list">
           {sorted.map((ev: HistoricalEvent, i) => (
-            <li key={i} className="timeline-item">
+            <li
+              key={i}
+              className={`timeline-item ${ev.coords ? 'has-location' : ''}`}
+              onMouseEnter={() => setHighlightedEvent(makeEventId(ev))}
+              onMouseLeave={() => setHighlightedEvent(null)}
+            >
               <div className="timeline-dot" />
               <div className="timeline-content">
                 <div className="timeline-year">{formatYear(ev.year)}</div>
                 <div className="timeline-title">{ev.title}</div>
+                {ev.location && <div className="timeline-location">{ev.location}</div>}
                 <div className="timeline-desc">{ev.desc}</div>
                 {ev.source && <div className="timeline-source">— {ev.source}</div>}
               </div>

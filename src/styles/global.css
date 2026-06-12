@@ -138,3 +138,55 @@ body {
     --panel-width: 440px;
   }
 }
+
+/* 地图事件 Popup */
+.maplibregl-popup-content {
+  background: rgba(10, 14, 26, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 14px 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  color: var(--color-text);
+}
+
+.maplibregl-popup-tip {
+  border-top-color: rgba(10, 14, 26, 0.94);
+}
+
+.event-popup {
+  font-family: var(--font-zh);
+  min-width: 160px;
+  max-width: 240px;
+}
+
+.event-popup-year {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-text-faint);
+  margin-bottom: 4px;
+  letter-spacing: 1px;
+}
+
+.event-popup-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-paper);
+  margin-bottom: 4px;
+}
+
+.event-popup-location {
+  font-size: 11px;
+  color: var(--dynasty-color, var(--color-primary));
+  margin-bottom: 6px;
+  letter-spacing: 1px;
+}
+
+.event-popup-location::before {
+  content: '◎ ';
+}
+
+.event-popup-desc {
+  font-size: 12px;
+  color: var(--color-text);
+  line-height: 1.5;
+}
