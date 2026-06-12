@@ -153,10 +153,10 @@ function formatYear(y: number): string {
  */
 async function loadDynasty(map: maplibregl.Map, dynasty: Dynasty) {
   try {
-    const url = `/dynasties/${dynasty.id}.json?t=${Date.now()}`
+    const url = `${import.meta.env.BASE_URL}dynasties/${dynasty.id}.json?t=${Date.now()}`
     const res = await fetch(url)
     if (!res.ok) {
-      console.warn(`Failed to load dynasty: ${dynasty.id}`)
+      console.warn(`Failed to load dynasty: ${dynasty.id}`, res.status)
       return
     }
     const feature: Feature = await res.json()

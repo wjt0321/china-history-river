@@ -19,7 +19,7 @@ export const DARK_TECHNO_STYLE: StyleSpecification = {
     },
     'china-base': {
       type: 'geojson',
-      data: '/geo-data/china.json',
+      data: `${import.meta.env.BASE_URL}geo-data/china.json`,
     },
   },
   layers: [
