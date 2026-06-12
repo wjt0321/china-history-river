@@ -110,8 +110,8 @@ export function MapView() {
     map.setPaintProperty('event-dots', 'circle-radius', [
       'case',
       ['==', ['get', 'id'], highlightedEventId || ''],
-      10,
-      6,
+      12,
+      8,
     ])
   }, [highlightedEventId, mapReady])
 
@@ -194,13 +194,13 @@ async function loadDynasty(map: maplibregl.Map, dynasty: Dynasty) {
       map.setPaintProperty(innerGlowLayer, 'line-opacity-transition', transition)
 
       map.setPaintProperty(fillLayer, 'fill-color', color)
-      map.setPaintProperty(fillLayer, 'fill-opacity', 0.45)
+      map.setPaintProperty(fillLayer, 'fill-opacity', 0.55)
       map.setPaintProperty(lineLayer, 'line-color', color)
-      map.setPaintProperty(lineLayer, 'line-opacity', 0.9)
+      map.setPaintProperty(lineLayer, 'line-opacity', 0.95)
       map.setPaintProperty(glowLayer, 'line-color', color)
-      map.setPaintProperty(glowLayer, 'line-opacity', 0.4)
+      map.setPaintProperty(glowLayer, 'line-opacity', 0.55)
       map.setPaintProperty(innerGlowLayer, 'line-color', color)
-      map.setPaintProperty(innerGlowLayer, 'line-opacity', 0.2)
+      map.setPaintProperty(innerGlowLayer, 'line-opacity', 0.35)
     } else {
       // 首次 → 添加 source + layer（带 transition 配置）
       map.addSource(sourceId, { type: 'geojson', data })
@@ -251,10 +251,10 @@ async function loadDynasty(map: maplibregl.Map, dynasty: Dynasty) {
       })
       // 淡入
       requestAnimationFrame(() => {
-        map.setPaintProperty(fillLayer, 'fill-opacity', 0.45)
-        map.setPaintProperty(lineLayer, 'line-opacity', 0.9)
-        map.setPaintProperty(glowLayer, 'line-opacity', 0.4)
-        map.setPaintProperty(innerGlowLayer, 'line-opacity', 0.2)
+        map.setPaintProperty(fillLayer, 'fill-opacity', 0.55)
+        map.setPaintProperty(lineLayer, 'line-opacity', 0.95)
+        map.setPaintProperty(glowLayer, 'line-opacity', 0.55)
+        map.setPaintProperty(innerGlowLayer, 'line-opacity', 0.35)
       })
     }
 
@@ -345,10 +345,10 @@ async function loadDynasty(map: maplibregl.Map, dynasty: Dynasty) {
         type: 'circle',
         source: eventSourceId,
         paint: {
-          'circle-radius': 18,
+          'circle-radius': 22,
           'circle-color': color,
-          'circle-opacity': 0.18,
-          'circle-blur': 0.8,
+          'circle-opacity': 0.35,
+          'circle-blur': 0.6,
         },
       })
       // 核心圆点
@@ -357,12 +357,12 @@ async function loadDynasty(map: maplibregl.Map, dynasty: Dynasty) {
         type: 'circle',
         source: eventSourceId,
         paint: {
-          'circle-radius': 6,
+          'circle-radius': 8,
           'circle-color': color,
-          'circle-opacity': 0.95,
+          'circle-opacity': 1,
           'circle-stroke-color': '#fff',
-          'circle-stroke-width': 1.5,
-          'circle-stroke-opacity': 0.6,
+          'circle-stroke-width': 2,
+          'circle-stroke-opacity': 0.8,
         },
       })
     }
