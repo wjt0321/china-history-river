@@ -172,6 +172,7 @@ async function loadDynasty(map: maplibregl.Map, dynasty: Dynasty) {
     const lineLayer = 'dynasty-line'
     const glowLayer = 'dynasty-glow'
     const innerGlowLayer = 'dynasty-inner-glow'
+    const outerInkLayer = 'dynasty-outer-ink'
 
     const data: FeatureCollection = {
       type: 'FeatureCollection',
@@ -192,18 +193,34 @@ async function loadDynasty(map: maplibregl.Map, dynasty: Dynasty) {
       map.setPaintProperty(glowLayer, 'line-opacity-transition', transition)
       map.setPaintProperty(innerGlowLayer, 'line-color-transition', transition)
       map.setPaintProperty(innerGlowLayer, 'line-opacity-transition', transition)
+      map.setPaintProperty(outerInkLayer, 'line-color-transition', transition)
+      map.setPaintProperty(outerInkLayer, 'line-opacity-transition', transition)
 
       map.setPaintProperty(fillLayer, 'fill-color', color)
-      map.setPaintProperty(fillLayer, 'fill-opacity', 0.55)
+      map.setPaintProperty(fillLayer, 'fill-opacity', 0.42)
       map.setPaintProperty(lineLayer, 'line-color', color)
-      map.setPaintProperty(lineLayer, 'line-opacity', 0.95)
+      map.setPaintProperty(lineLayer, 'line-opacity', 0.9)
       map.setPaintProperty(glowLayer, 'line-color', color)
-      map.setPaintProperty(glowLayer, 'line-opacity', 0.55)
+      map.setPaintProperty(glowLayer, 'line-opacity', 0.45)
       map.setPaintProperty(innerGlowLayer, 'line-color', color)
-      map.setPaintProperty(innerGlowLayer, 'line-opacity', 0.35)
+      map.setPaintProperty(innerGlowLayer, 'line-opacity', 0.28)
+      map.setPaintProperty(outerInkLayer, 'line-color', color)
+      map.setPaintProperty(outerInkLayer, 'line-opacity', 0.18)
     } else {
       // 首次 → 添加 source + layer（带 transition 配置）
       map.addSource(sourceId, { type: 'geojson', data })
+      // 外层墨晕（最宽最淡，模拟水墨洇开）
+      map.addLayer({
+        id: outerInkLayer,
+        type: 'line',
+        source: sourceId,
+        paint: {
+          'line-color': color,
+          'line-width': 28,
+          'line-opacity': 0,
+          'line-blur': 20,
+        },
+      })
       // 外发光（宽散光，羽化边缘）
       map.addLayer({
         id: glowLayer,
@@ -251,10 +268,11 @@ async function loadDynasty(map: maplibregl.Map, dynasty: Dynasty) {
       })
       // 淡入
       requestAnimationFrame(() => {
-        map.setPaintProperty(fillLayer, 'fill-opacity', 0.55)
-        map.setPaintProperty(lineLayer, 'line-opacity', 0.95)
-        map.setPaintProperty(glowLayer, 'line-opacity', 0.55)
-        map.setPaintProperty(innerGlowLayer, 'line-opacity', 0.35)
+        map.setPaintProperty(fillLayer, 'fill-opacity', 0.42)
+        map.setPaintProperty(lineLayer, 'line-opacity', 0.9)
+        map.setPaintProperty(glowLayer, 'line-opacity', 0.45)
+        map.setPaintProperty(innerGlowLayer, 'line-opacity', 0.28)
+        map.setPaintProperty(outerInkLayer, 'line-opacity', 0.18)
       })
     }
 
