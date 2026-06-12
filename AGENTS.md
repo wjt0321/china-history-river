@@ -233,6 +233,23 @@ Zustand store（`src/stores/appStore.ts`）只存三个核心状态：
 - **不要引入新的重型依赖**：当前包体积已不小（MapLibre + D3 + Framer Motion），新增库需权衡体积收益比。优先使用原生 Web API / Canvas。
 - **保持中文注释**：所有新代码的注释、变量命名（业务语义部分）应保持中文，与现有代码风格一致。
 
+### Windows / Git Bash 命令执行注意
+
+开发环境为 **Windows + Git Bash**，Bash 工具底层调用 `C:\Program Files\Git\bin\bash.exe`。以下坑点已踩过，请优先按正确方式执行：
+
+1. **终止 Windows 进程（如 Vite 开发服务器）**：
+   - ❌ 不要直接写 `taskkill /F /PID <pid>`，Git Bash 会把 `/F` 当成路径解析而报错。
+   - ✅ 正确写法：`cmd //c taskkill //F //PID <pid>`（用 `//` 传递 Windows 参数）。
+   - ✅ 或者先用 `netstat -ano | grep <port>` 找到 PID，再用上述命令终止。
+
+2. **Git Bash 的 `kill` 命令**：
+   - ❌ `kill <pid>` 通常无法终止 Windows 原生进程（会报 `No such process`）。
+   - ✅ 统一用 `taskkill` 处理。
+
+3. **路径分隔符**：
+   - 优先使用工具自带的 `Read`/`Write`/`Edit`/`Glob`/`Grep` 处理文件，避免在 Bash 里用 `cat`/`sed` 等。
+   - 若必须在 Bash 里写路径，使用正斜杠 `/`，如 `D:/china-history-river/src`。
+
 ---
 
 *文档版本：v1.0（基于阶段 1 完成后的 codebase）*
