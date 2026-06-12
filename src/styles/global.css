@@ -4,33 +4,33 @@
  * ============================================================ */
 
 :root {
-  /* 主色板 */
-  --color-bg-deep: #050810;
-  --color-bg: #0a0e1a;
-  --color-bg-elev: #11172a;
-  --color-bg-elev-2: #1a2238;
+  /* 主色板：宫墙夜色 + 宣纸暖意 */
+  --color-bg-deep: #0c0b09;
+  --color-bg: #12110e;
+  --color-bg-elev: #1a1915;
+  --color-bg-elev-2: #23211c;
 
-  /* 主色：青金蓝 */
-  --color-primary: #4ecdc4;
-  --color-primary-dim: #2a9d8f;
-  --color-primary-bright: #7be8df;
+  /* 主色：暗金 */
+  --color-primary: #b8943a;
+  --color-primary-dim: #7a6a2a;
+  --color-primary-bright: #d4b050;
 
-  /* 强调色：朱砂红 */
-  --color-accent: #e63946;
-  --color-accent-dim: #b82c38;
+  /* 强调色：宫墙朱 */
+  --color-accent: #8b3535;
+  --color-accent-dim: #5a2525;
 
-  /* 文字 */
-  --color-text: #e8eef5;
-  --color-text-dim: #8a96a8;
-  --color-text-faint: #4a5468;
+  /* 文字：宣纸白 */
+  --color-text: #f5f0e6;
+  --color-text-dim: #a8a090;
+  --color-text-faint: #5a5548;
 
-  /* 古风点缀 */
-  --color-ink: #1a1f2e;
-  --color-paper: #f4e4ba;
+  /* 古风点缀：墨 + 纸 */
+  --color-ink: #3a3a36;
+  --color-paper: #f5f0e6;
 
   /* 边框 */
-  --color-border: rgba(78, 205, 196, 0.15);
-  --color-border-bright: rgba(78, 205, 196, 0.4);
+  --color-border: rgba(184, 148, 58, 0.15);
+  --color-border-bright: rgba(184, 148, 58, 0.4);
 
   /* 字体 */
   --font-zh: 'Noto Serif SC', 'Source Han Serif SC', '宋体', 'STSong', serif;
