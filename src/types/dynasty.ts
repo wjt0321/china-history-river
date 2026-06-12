@@ -16,6 +16,8 @@ export interface HistoricalEvent {
   title: string
   desc: string
   source?: string
+  location?: string
+  coords?: [number, number]
 }
 
 export interface Economy {
