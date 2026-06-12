@@ -415,6 +415,12 @@
   border-radius: 8px;
   transition: all 0.25s;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  outline: none;
+}
+
+.emperor-card.is-expanded {
+  border-color: var(--dynasty-color, var(--color-primary));
 }
 
 .emperor-card:hover {
@@ -474,6 +480,11 @@
 
 .emp-subtitle.fault {
   color: var(--color-accent);
+}
+
+.emperor-detail {
+  overflow: hidden;
+  margin-top: 2px;
 }
 
 .emp-list {
