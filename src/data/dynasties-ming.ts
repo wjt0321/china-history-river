@@ -31,11 +31,11 @@ export const ming: Dynasty = {
     { name: '明思宗朱由检', reign: '1627 - 1644', years: 17, role: '亡国之君', achievements: ['铲除魏忠贤'], faults: ['性格多疑', '自毁长城'] },
   ],
   events: [
-    { year: 1368, title: '朱元璋称帝', desc: '建明，年号洪武', source: '《明史》' },
-    { year: 1405, title: '郑和下西洋', desc: '**人类大航海时代的前奏**', source: '《明史》' },
-    { year: 1408, title: '《永乐大典》成书', desc: '11095 卷，**类书之最**', source: '《明史》' },
-    { year: 1449, title: '土木之变', desc: '明英宗被俘', source: '《明史》' },
-    { year: 1644, title: '崇祯自缢', desc: '李自成入京，明亡', source: '《明史》' },
+    { year: 1368, title: '朱元璋称帝', desc: '建明，年号洪武', location: '南京', coords: [118.8, 32.1], source: '《明史》' },
+    { year: 1405, title: '郑和下西洋', desc: '**人类大航海时代的前奏**', location: '太仓', coords: [121.1, 31.5], source: '《明史》' },
+    { year: 1408, title: '《永乐大典》成书', desc: '11095 卷，**类书之最**', location: '南京', coords: [118.8, 32.1], source: '《明史》' },
+    { year: 1449, title: '土木之变', desc: '明英宗被俘', location: '土木堡', coords: [115.5, 40.4], source: '《明史》' },
+    { year: 1644, title: '崇祯自缢', desc: '李自成入京，明亡', location: '北京', coords: [116.4, 39.9], source: '《明史》' },
   ],
   economy: { territory: 997, population: 15000, currency: '大明宝钞、银两' },
   battles: [

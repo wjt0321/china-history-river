@@ -41,9 +41,9 @@ const xia: Dynasty = {
     { name: '桀', reign: '前 1818 - 前 1766', years: 52, role: '亡国之君', achievements: [], faults: ['暴虐', '酒池肉林'] },
   ],
   events: [
-    { year: -2070, title: '大禹治水', desc: '划定九州，奠定夏朝基础', source: '《尚书·禹贡》' },
-    { year: -2025, title: '禹传启', desc: '世袭制开端', source: '《史记·夏本纪》' },
-    { year: -1600, title: '商汤伐夏', desc: '鸣条之战，夏亡', source: '《史记·夏本纪》' },
+    { year: -2070, title: '大禹治水', desc: '划定九州，奠定夏朝基础', location: '黄河中下游', coords: [113.5, 35.0], source: '《尚书·禹贡》' },
+    { year: -2025, title: '禹传启', desc: '世袭制开端', location: '阳城', coords: [113.0, 34.5], source: '《史记·夏本纪》' },
+    { year: -1600, title: '商汤伐夏', desc: '鸣条之战，夏亡', location: '鸣条', coords: [111.2, 35.1], source: '《史记·夏本纪》' },
   ],
   economy: { territory: 60 },
   battles: [
@@ -93,10 +93,10 @@ const shang: Dynasty = {
     { name: '帝辛（纣）', reign: '前 1075 - 前 1046', years: 29, role: '亡国之君', achievements: [], faults: ['暴政', '酒池肉林', '伐东夷致亡'] },
   ],
   events: [
-    { year: -1600, title: '成汤革命', desc: '鸣条之战灭夏', source: '《史记·殷本纪》' },
-    { year: -1300, title: '盘庚迁殷', desc: '迁都至殷，政局稳定', source: '《史记·殷本纪》' },
-    { year: -1250, title: '武丁中兴', desc: '武丁盛世，妇好伐羌', source: '《史记·殷本纪》' },
-    { year: -1046, title: '牧野之战', desc: '周武王伐纣，纣自焚', source: '《史记·周本纪》' },
+    { year: -1600, title: '成汤革命', desc: '鸣条之战灭夏', location: '鸣条', coords: [111.2, 35.1], source: '《史记·殷本纪》' },
+    { year: -1300, title: '盘庚迁殷', desc: '迁都至殷，政局稳定', location: '殷', coords: [114.4, 36.1], source: '《史记·殷本纪》' },
+    { year: -1250, title: '武丁中兴', desc: '武丁盛世，妇好伐羌', location: '殷', coords: [114.4, 36.1], source: '《史记·殷本纪》' },
+    { year: -1046, title: '牧野之战', desc: '周武王伐纣，纣自焚', location: '牧野', coords: [113.9, 35.3], source: '《史记·周本纪》' },
   ],
   economy: { territory: 120 },
   battles: [
@@ -156,13 +156,13 @@ const zhou: Dynasty = {
     { name: '周赧王', reign: '前 314 - 前 256', years: 58, role: '亡国之君', achievements: [] },
   ],
   events: [
-    { year: -1046, title: '牧野之战', desc: '周武王伐纣灭商', source: '《史记·周本纪》' },
-    { year: -1042, title: '周公摄政', desc: '周公旦摄政七年', source: '《史记·周本纪》' },
-    { year: -771, title: '犬戎之祸', desc: '西周灭亡，平王东迁', source: '《史记·周本纪》' },
-    { year: -551, title: '孔子诞生', desc: '至圣先师，万世师表', source: '《史记·孔子世家》' },
-    { year: -453, title: '三家分晋', desc: '春秋转入战国', source: '《史记·晋世家》' },
-    { year: -356, title: '商鞅变法', desc: '秦由弱变强', source: '《史记·秦本纪》' },
-    { year: -221, title: '秦灭六国', desc: '周朝名存实亡', source: '《史记·秦始皇本纪》' },
+    { year: -1046, title: '牧野之战', desc: '周武王伐纣灭商', location: '牧野', coords: [113.9, 35.3], source: '《史记·周本纪》' },
+    { year: -1042, title: '周公摄政', desc: '周公旦摄政七年', location: '镐京', coords: [108.9, 34.3], source: '《史记·周本纪》' },
+    { year: -771, title: '犬戎之祸', desc: '西周灭亡，平王东迁', location: '镐京', coords: [108.9, 34.3], source: '《史记·周本纪》' },
+    { year: -551, title: '孔子诞生', desc: '至圣先师，万世师表', location: '曲阜', coords: [116.9, 35.6], source: '《史记·孔子世家》' },
+    { year: -453, title: '三家分晋', desc: '春秋转入战国', location: '晋阳', coords: [112.5, 37.9], source: '《史记·晋世家》' },
+    { year: -356, title: '商鞅变法', desc: '秦由弱变强', location: '咸阳', coords: [108.7, 34.3], source: '《史记·秦本纪》' },
+    { year: -221, title: '秦灭六国', desc: '周朝名存实亡', location: '咸阳', coords: [108.7, 34.3], source: '《史记·秦始皇本纪》' },
   ],
   economy: { territory: 350, currency: '贝币（铜贝）' },
   battles: [
