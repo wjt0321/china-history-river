@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useAppStore } from '@/stores/appStore'
+import { prefersReducedMotion } from '@/utils/motion'
 import './CustomCursor.css'
 
 /**
@@ -130,7 +131,7 @@ export function CustomCursor() {
     }
   }, [])
 
-  if (isTouch) return null
+  if (isTouch || prefersReducedMotion()) return null
 
   const color = selectedDynasty.color || 'var(--color-accent)'
 

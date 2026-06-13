@@ -4,8 +4,10 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import { DARK_TECHNO_STYLE } from '@/styles/mapStyle'
 import { useAppStore } from '@/stores/appStore'
 import { sound } from '@/utils/sound'
+import { formatYear } from '@/utils/format'
+import { motionDuration } from '@/utils/motion'
 import type { Dynasty } from '@/types/dynasty'
-import type { Feature, FeatureCollection } from 'geojson'
+import type { Feature, FeatureCollection, Polygon } from 'geojson'
 
 /**
  * 中国地图主组件
@@ -137,7 +139,7 @@ export function MapView() {
         <div className="info-label">CURRENT TERRITORY</div>
         <div className="info-name" style={{ color: dynastyColor }}>{selectedDynasty.name}</div>
         <div className="info-era" style={{ color: dynastyColor }}>
-          {formatYear(selectedDynasty.startYear)} — {formatYear(selectedDynasty.endYear)}
+          {formatYear(selectedDynasty.startYear, 'short')} — {formatYear(selectedDynasty.endYear, 'short')}
         </div>
         <div className="info-accent-line" style={{ background: dynastyColor }} />
       </div>
@@ -148,10 +150,6 @@ export function MapView() {
   )
 }
 
-function formatYear(y: number): string {
-  if (y < 0) return `BC ${-y}`
-  return `${y} CE`
-}
 
 /**
  * 加载朝代疆域（fade 切换 + 朝代专属色）
@@ -164,10 +162,10 @@ async function loadDynasty(map: maplibregl.Map, dynasty: Dynasty) {
       console.warn(`Failed to load dynasty: ${dynasty.id}`, res.status)
       return
     }
-    const feature: Feature = await res.json()
+    const feature: Feature<Polygon> = await res.json()
 
     // 取出中心点
-    const coords = (feature.geometry as any).coordinates[0] as [number, number][]
+    const coords = feature.geometry.coordinates[0] as [number, number][]
     const center = computeCentroid(coords)
 
     const color = dynasty.color || '#e63946'
@@ -285,14 +283,12 @@ async function loadDynasty(map: maplibregl.Map, dynasty: Dynasty) {
     const capitalCoords = CAPITAL_COORDS[dynasty.id]
     if (capitalCoords) {
       // 清理旧 marker
-      if ((map as any).__capitalMarker) {
-        ;(map as any).__capitalMarker.remove()
-      }
+      capitalMarkerMap.get(map)?.remove()
       const el = document.createElement('div')
       el.className = 'capital-seal'
       // 取主要城市名：去除注释、多都城取第一个
       const shortName = dynasty.capital
-        .split(/[\/（(]/)[0]
+        .split(/[/\uFF08(]/)[0]
         .trim()
         .slice(0, 2)
       el.innerHTML = `<span>${shortName}</span>`
@@ -301,10 +297,8 @@ async function loadDynasty(map: maplibregl.Map, dynasty: Dynasty) {
       const marker = new maplibregl.Marker({ element: el, anchor: 'bottom' })
         .setLngLat(capitalCoords)
         .addTo(map)
-      ;(map as any).__capitalMarker = marker
+      capitalMarkerMap.set(map, marker)
     }
-
-    // === 事件标记 ===
     const eventFeatures: Feature[] = []
     for (const ev of dynasty.events || []) {
       if (!ev.coords) continue
@@ -366,7 +360,7 @@ async function loadDynasty(map: maplibregl.Map, dynasty: Dynasty) {
     map.flyTo({
       center: center,
       zoom: 3.6,
-      duration: 1800,
+      duration: motionDuration(1800),
       essential: true,
     })
   } catch (e) {
@@ -391,6 +385,9 @@ const CAPITAL_COORDS: Record<string, [number, number]> = {
   ming: [116.4, 39.9],
   qing: [116.4, 39.9],
 }
+
+/** 都城朱印 Marker 缓存，避免泄露与类型污染 */
+const capitalMarkerMap = new WeakMap<maplibregl.Map, maplibregl.Marker>()
 
 /**
  * 计算多边形质心（简单平均）

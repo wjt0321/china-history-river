@@ -9,28 +9,31 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "lint": "eslint .",
-    "type-check": "tsc -b --noEmit"
+    "type-check": "tsc -b --noEmit",
+    "optimize-images": "tsx scripts/optimize-images.ts"
   },
   "dependencies": {
-    "china-geojson": "^1.0.0",
-    "d3": "^7.9.0",
-    "d3-geo": "^3.1.1",
     "framer-motion": "^11.11.0",
     "maplibre-gl": "^4.7.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "topojson-client": "^3.1.0",
     "zustand": "^5.0.0"
   },
   "devDependencies": {
-    "@types/d3": "^7.4.3",
-    "@types/d3-geo": "^3.1.0",
+    "@eslint/js": "^9.15.0",
     "@types/node": "^25.9.3",
     "@types/react": "^18.3.10",
     "@types/react-dom": "^18.3.0",
-    "@types/topojson-client": "^3.1.5",
     "@vitejs/plugin-react": "^4.3.2",
+    "eslint": "^9.15.0",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "eslint-plugin-react-refresh": "^0.4.14",
+    "glob": "^13.0.6",
+    "globals": "^15.12.0",
+    "sharp": "^0.35.1",
+    "tsx": "^4.22.4",
     "typescript": "^5.6.2",
+    "typescript-eslint": "^8.15.0",
     "undici": "^8.4.1",
     "vite": "^5.4.8"
   }

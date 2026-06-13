@@ -54,6 +54,7 @@ async function getImageInfo(fileTitle: string): Promise<WmImageInfo | null> {
     return null
   }
   const d = JSON.parse(r.body.toString('utf-8'))
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const first = Object.values(d.query.pages)[0] as any
   return first?.imageinfo?.[0] ?? null
 }
@@ -63,6 +64,7 @@ async function searchFiles(query: string, limit = 8): Promise<string[]> {
   const r = await getWithRetry(url)
   if (r.status !== 200) return []
   const d = JSON.parse(r.body.toString('utf-8'))
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (d.query?.search ?? []).map((m: any) => m.title as string)
 }
 

@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react'
 import { DYNASTIES_BY_TIME } from '@/data/dynasties'
 import { useAppStore } from '@/stores/appStore'
 import { MIN_YEAR, MAX_YEAR } from '@/stores/appStore'
+import { formatYear } from '@/utils/format'
+import { hexToRgba } from '@/utils/color'
 import './Timeline.css'
 
 const FULL_YEAR_RANGE = MAX_YEAR - MIN_YEAR
@@ -39,23 +41,6 @@ function xToFullYear(x: number, width: number): number {
   return MIN_YEAR + ((x - PADDING) / (width - PADDING * 2)) * FULL_YEAR_RANGE
 }
 
-function formatYearShort(y: number): string {
-  if (y < 0) return `BC ${-y}`
-  return `${y}`
-}
-
-function hexToRgba(hex: string, alpha: number): string {
-  let clean = hex.replace('#', '')
-  if (clean.length === 3) {
-    clean = clean.split('').map((c) => c + c).join('')
-  }
-  const bigint = parseInt(clean, 16)
-  if (Number.isNaN(bigint)) return `rgba(184, 148, 58, ${alpha})`
-  const r = (bigint >> 16) & 255
-  const g = (bigint >> 8) & 255
-  const b = bigint & 255
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`
-}
 
 function clampRange(start: number, end: number): { startYear: number; endYear: number } {
   let s = Math.max(MIN_YEAR, Math.min(MAX_YEAR - MIN_BRUSH_SPAN, start))
@@ -108,7 +93,6 @@ export function Timeline() {
       return null
     }
 
-    let mouseX = -1
     let isInBrush = false
 
     // brush 拖拽状态
@@ -142,7 +126,6 @@ export function Timeline() {
       const rect = canvas.getBoundingClientRect()
       const x = e.clientX - rect.left
       const y = e.clientY - rect.top
-      mouseX = x
       isInBrush = y >= BRUSH_TOP
 
       if (brushDrag.active) {
@@ -181,7 +164,6 @@ export function Timeline() {
     }
 
     const handleMouseLeave = () => {
-      mouseX = -1
       isInBrush = false
       brushDrag.active = false
       brushDrag.mode = 'none'
@@ -399,7 +381,7 @@ export function Timeline() {
           else ctx.lineTo(x, y)
         }
         const alpha = isActive ? 0.9 : isHovered ? 0.75 : 0.55
-        ctx.strokeStyle = hexToRgba(dynasty.color || '#4ECDC4', alpha)
+        ctx.strokeStyle = hexToRgba(dynasty.color || '#b8943a', alpha)
         ctx.lineWidth = isActive ? 2.5 : 1.5
         ctx.stroke()
       })
@@ -418,7 +400,7 @@ export function Timeline() {
           if (x === activeSeg.startX) ctx.moveTo(x, y)
           else ctx.lineTo(x, y)
         }
-        ctx.strokeStyle = hexToRgba(activeSeg.dynasty.color || '#4ECDC4', pulse + 0.4)
+        ctx.strokeStyle = hexToRgba(activeSeg.dynasty.color || '#b8943a', pulse + 0.4)
         ctx.lineWidth = 5
         ctx.stroke()
         ctx.restore()
@@ -439,7 +421,7 @@ export function Timeline() {
 
         ctx.font = '9px var(--font-mono, "SF Mono", Consolas, monospace)'
         ctx.fillStyle = 'rgba(168, 160, 144, 0.6)'
-        const yearText = `${formatYearShort(dynasty.startYear)} — ${formatYearShort(dynasty.endYear)}`
+        const yearText = `${formatYear(dynasty.startYear, 'short')} — ${formatYear(dynasty.endYear, 'short')}`
         ctx.fillText(yearText, midX, labelY + 14)
       })
 
@@ -467,14 +449,14 @@ export function Timeline() {
         const sx = fullYearToX(d.startYear, width)
         const ex = fullYearToX(d.endYear, width)
         const isActive = d.id === selectedDynastyId
-        ctx.fillStyle = hexToRgba(d.color || '#4ECDC4', isActive ? 0.55 : 0.28)
+        ctx.fillStyle = hexToRgba(d.color || '#b8943a', isActive ? 0.55 : 0.28)
         ctx.fillRect(sx, trackY - trackH / 2, Math.max(1, ex - sx), trackH)
       })
 
       // 当前窗口
       const wx1 = fullYearToX(timeRange.startYear, width)
       const wx2 = fullYearToX(timeRange.endYear, width)
-      const dynastyColor = DYNASTIES_BY_TIME.find((d) => d.id === selectedDynastyId)?.color || '#4ECDC4'
+      const dynastyColor = DYNASTIES_BY_TIME.find((d) => d.id === selectedDynastyId)?.color || '#b8943a'
 
       ctx.save()
       ctx.fillStyle = hexToRgba(dynastyColor, 0.14)
@@ -482,9 +464,6 @@ export function Timeline() {
       ctx.lineWidth = 1
       ctx.shadowColor = dynastyColor
       ctx.shadowBlur = 10
-      ctx.fillRect(wx1, trackY - trackH / 2 - 2, Math.max(1, wx2 - wx1), trackH + 4)
-      ctx.strokeRect(wx1, trackY - trackH / 2 - 2, Math.max(1, wx2 - wx1), trackH + 4)
-      ctx.restore()
 
       // 左右把手
       ctx.fillStyle = hexToRgba(dynastyColor, 0.9)
@@ -495,9 +474,10 @@ export function Timeline() {
       ctx.font = '9px var(--font-mono, "SF Mono", Consolas, monospace)'
       ctx.fillStyle = 'rgba(168, 160, 144, 0.7)'
       ctx.textAlign = 'left'
-      ctx.fillText(formatYearShort(timeRange.startYear), PADDING, BRUSH_BOTTOM - 2)
+      ctx.fillText(formatYear(timeRange.startYear, 'short'), PADDING, BRUSH_BOTTOM - 2)
       ctx.textAlign = 'right'
-      ctx.fillText(formatYearShort(timeRange.endYear), width - PADDING, BRUSH_BOTTOM - 2)
+      ctx.fillText(formatYear(timeRange.endYear, 'short'), width - PADDING, BRUSH_BOTTOM - 2)
+      ctx.restore()
 
       // 分隔线
       ctx.beginPath()

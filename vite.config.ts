@@ -23,7 +23,6 @@ export default defineConfig({
       output: {
         manualChunks: {
           maplibre: ['maplibre-gl'],
-          d3: ['d3', 'd3-geo', 'topojson-client'],
           motion: ['framer-motion'],
         },
       },

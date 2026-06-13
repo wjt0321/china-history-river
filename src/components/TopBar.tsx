@@ -1,6 +1,7 @@
 import { DYNASTIES_BY_TIME } from '@/data/dynasties'
 import { useAppStore } from '@/stores/appStore'
 import { sound } from '@/utils/sound'
+import { formatYear } from '@/utils/format'
 import { useState } from 'react'
 import './TopBar.css'
 
@@ -111,7 +112,3 @@ export function TopBar() {
   )
 }
 
-function formatYear(y: number): string {
-  if (y < 0) return `BC ${-y}`
-  return `${y}`
-}

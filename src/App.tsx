@@ -8,10 +8,13 @@ import { IntroAnimation } from '@/components/IntroAnimation'
 import { InkDecorations } from '@/components/InkDecorations'
 import { CustomCursor } from '@/components/CustomCursor'
 import { useAppStore } from '@/stores/appStore'
+import { adjustBrightness, hexToRgba } from '@/utils/color'
+import { prefersReducedMotion } from '@/utils/motion'
+import './App.css'
 
 function App() {
   const selectedDynasty = useAppStore((s) => s.selectedDynasty)
-  const [introDone, setIntroDone] = useState(false)
+  const [introDone, setIntroDone] = useState(prefersReducedMotion())
 
   // 动态注入朝代主题色到 CSS 变量
   useEffect(() => {
@@ -37,21 +40,5 @@ function App() {
   )
 }
 
-/** 调整十六进制颜色亮度（-100~100） */
-function adjustBrightness(hex: string, percent: number): string {
-  const num = parseInt(hex.replace('#', ''), 16)
-  const r = Math.min(255, Math.max(0, (num >> 16) + percent * 2.55))
-  const g = Math.min(255, Math.max(0, ((num >> 8) & 0x00ff) + percent * 2.55))
-  const b = Math.min(255, Math.max(0, (num & 0x0000ff) + percent * 2.55))
-  return `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`
-}
-
-function hexToRgba(hex: string, alpha: number): string {
-  const num = parseInt(hex.replace('#', ''), 16)
-  const r = (num >> 16) & 255
-  const g = (num >> 8) & 255
-  const b = num & 255
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`
-}
-
 export default App
+

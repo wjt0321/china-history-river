@@ -307,7 +307,7 @@ export function AtmosphereParticles() {
       }
     }
 
-    const initialType = TYPE_MAP[selectedDynastyId] || 'fireflies'
+    const initialType = TYPE_MAP[useAppStore.getState().selectedDynastyId] || 'fireflies'
     typeRef.current = initialType
     const cfg = TYPE_CONFIG[initialType]
     particlesRef.current = []

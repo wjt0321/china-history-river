@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { DYNASTIES_BY_TIME } from '@/data/dynasties'
 import { sound } from '@/utils/sound'
@@ -45,19 +45,19 @@ export function IntroAnimation({ onComplete }: IntroAnimationProps) {
     return () => clearTimeout(t)
   }, [phase])
 
+  const handleEnter = useCallback(() => {
+    if (exiting) return
+    void sound.playSeal()
+    setExiting(true)
+    setTimeout(onComplete, 900)
+  }, [exiting, onComplete])
+
   // 提示出现后可点击或自动进入
   useEffect(() => {
     if (phase !== 'prompt') return
     const auto = setTimeout(() => handleEnter(), 2800)
     return () => clearTimeout(auto)
-  }, [phase])
-
-  const handleEnter = () => {
-    if (exiting) return
-    void sound.playSeal()
-    setExiting(true)
-    setTimeout(onComplete, 900)
-  }
+  }, [phase, handleEnter])
 
   return (
     <AnimatePresence>
@@ -69,6 +69,16 @@ export function IntroAnimation({ onComplete }: IntroAnimationProps) {
           transition={{ duration: 0.9, ease: [0.65, 0, 0.35, 1] }}
           onClick={handleEnter}
         >
+          <button
+            type="button"
+            className="intro-skip"
+            onClick={(e) => {
+              e.stopPropagation()
+              handleEnter()
+            }}
+          >
+            跳过
+          </button>
           {/* 背景暗纹 */}
           <div className="intro-texture" />
 

@@ -10,7 +10,7 @@ class SoundManager {
   private getCtx(): AudioContext | null {
     if (typeof window === 'undefined') return null
     if (this.ctx) return this.ctx
-    const AudioCtx = (window as any).AudioContext || (window as any).webkitAudioContext
+    const AudioCtx = window.AudioContext ?? (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
     if (!AudioCtx) return null
     this.ctx = new AudioCtx()
     return this.ctx

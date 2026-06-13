@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAppStore } from '@/stores/appStore'
+import { formatYear } from '@/utils/format'
 import type { Dynasty, Emperor, HistoricalEvent, Battle, Culture, ForeignRelation, TerritoryStage, HistoricalEvaluation, RelatedPerson } from '@/types/dynasty'
 import './DetailPanel.css'
 
@@ -135,7 +136,7 @@ export function DetailPanel() {
               animate="visible"
               style={{ color: dynastyColor }}
             >
-              {formatYear(selectedDynasty.startYear)} — {formatYear(selectedDynasty.endYear)}
+              {formatYear(selectedDynasty.startYear, 'full')} — {formatYear(selectedDynasty.endYear, 'full')}
             </motion.div>
             <motion.h2
               className="detail-name"
@@ -188,7 +189,7 @@ export function DetailPanel() {
           )}
 
           <nav className="detail-tabs">
-            {TABS.map((t, i) => (
+            {TABS.map((t) => (
               <button
                 key={t.key}
                 className={`tab-btn ${activeTab === t.key ? 'is-active' : ''}`}
@@ -376,7 +377,7 @@ function EventsTab({ d }: { d: Dynasty }) {
             >
               <div className="timeline-dot" />
               <div className="timeline-content">
-                <div className="timeline-year">{formatYear(ev.year)}</div>
+                <div className="timeline-year">{formatYear(ev.year, 'full')}</div>
                 <div className="timeline-title">{ev.title}</div>
                 {ev.location && <div className="timeline-location">{ev.location}</div>}
                 <div className="timeline-desc">{ev.desc}</div>
@@ -393,7 +394,7 @@ function EventsTab({ d }: { d: Dynasty }) {
           <div className="battle-list">
             {d.battles.map((b: Battle, i) => (
               <div key={i} className="battle-card">
-                <div className="battle-year">{formatYear(b.year)}</div>
+                <div className="battle-year">{formatYear(b.year, 'full')}</div>
                 <div className="battle-name">{b.name}</div>
                 <div className="battle-desc">{b.desc}</div>
                 {b.keyFigures.length > 0 && (
@@ -498,7 +499,7 @@ function TerritoryTab({ d }: { d: Dynasty }) {
         <ul className="territory-list">
           {d.territoryEvolution.map((t: TerritoryStage, i) => (
             <li key={i} className="territory-item">
-              <div className="territory-year">{formatYear(t.year)}</div>
+              <div className="territory-year">{formatYear(t.year, 'full')}</div>
               <div className="territory-range">{t.range}</div>
               <div className="territory-event">{t.event}</div>
             </li>
@@ -580,7 +581,3 @@ function MetaItem({ label, value }: { label: string; value: string }) {
   )
 }
 
-function formatYear(y: number): string {
-  if (y < 0) return `公元前 ${-y}`
-  return `公元 ${y} 年`
-}
