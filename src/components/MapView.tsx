@@ -3,11 +3,13 @@ import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { DARK_TECHNO_STYLE } from '@/styles/mapStyle'
 import { useAppStore } from '@/stores/appStore'
+import { useMapTerritory } from '@/hooks/useMapTerritory'
 import { sound } from '@/utils/sound'
 import { formatYear } from '@/utils/format'
 import { motionDuration } from '@/utils/motion'
 import type { Dynasty } from '@/types/dynasty'
 import type { Feature, FeatureCollection, Polygon } from 'geojson'
+import './MapView.css'
 
 /**
  * 中国地图主组件
@@ -16,6 +18,7 @@ import type { Feature, FeatureCollection, Polygon } from 'geojson'
  * - 全中国底图（永久，深蓝灰）
  * - 当前朝代疆域叠加（朝代专属色 + 多层光晕）
  * - 切换时 fade-in + 飞行到中心
+ * - Loading / Error 状态提示（左下角）
  */
 export function MapView() {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -25,6 +28,8 @@ export function MapView() {
   const [mapReady, setMapReady] = useState(false)
   const selectedDynasty = useAppStore((s) => s.selectedDynasty)
   const highlightedEventId = useAppStore((s) => s.highlightedEventId)
+
+  const { isLoading, error, loadTerritory } = useMapTerritory()
 
   // 初始化地图
   useEffect(() => {
@@ -48,7 +53,11 @@ export function MapView() {
     map.on('load', () => {
       isMapLoaded.current = true
       setMapReady(true)
-      void loadDynasty(map, useAppStore.getState().selectedDynasty)
+      // 初始加载
+      const initDynasty = useAppStore.getState().selectedDynasty
+      loadTerritory(initDynasty).then((feature) => {
+        if (feature) applyTerritoryToMap(map, initDynasty, feature)
+      })
     })
 
     mapRef.current = map
@@ -59,13 +68,17 @@ export function MapView() {
       mapRef.current = null
       isMapLoaded.current = false
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // 选中朝代变化时 → 加载疆域 + 飞行
   useEffect(() => {
     const map = mapRef.current
     if (!map || !isMapLoaded.current) return
-    void loadDynasty(map, selectedDynasty)
+    loadTerritory(selectedDynasty).then((feature) => {
+      if (feature) applyTerritoryToMap(map, selectedDynasty, feature)
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDynasty])
 
   // 事件标记 click → Popup
@@ -143,6 +156,24 @@ export function MapView() {
         </div>
         <div className="info-accent-line" style={{ background: dynastyColor }} />
       </div>
+
+      {/* Loading 提示 */}
+      {isLoading && (
+        <div className="map-status glass-panel map-status-loading">
+          <span className="map-status-spinner" />
+          <span>加载疆域数据…</span>
+        </div>
+      )}
+
+      {/* Error 提示 */}
+      {error && (
+        <div className="map-status glass-panel map-status-error">
+          <span className="map-status-error-icon">⚠</span>
+          <span>疆域数据加载失败</span>
+          <span className="map-status-error-detail">· {selectedDynasty.name}</span>
+        </div>
+      )}
+
       <div className="map-attribution">
         数据 · 谭其骧《中国历史地图集》+ 维基 CC BY-SA · 制图 · MapLibre GL
       </div>
@@ -152,220 +183,205 @@ export function MapView() {
 
 
 /**
- * 加载朝代疆域（fade 切换 + 朝代专属色）
+ * 将已加载的 GeoJSON 疆域应用到地图
+ * （与网络无关的纯地图操作）
  */
-async function loadDynasty(map: maplibregl.Map, dynasty: Dynasty) {
-  try {
-    const url = `${import.meta.env.BASE_URL}dynasties/${dynasty.id}.json?t=${Date.now()}`
-    const res = await fetch(url)
-    if (!res.ok) {
-      console.warn(`Failed to load dynasty: ${dynasty.id}`, res.status)
-      return
-    }
-    const feature: Feature<Polygon> = await res.json()
+function applyTerritoryToMap(map: maplibregl.Map, dynasty: Dynasty, feature: Feature<Polygon>) {
+  const coords = feature.geometry.coordinates[0] as [number, number][]
+  const center = computeCentroid(coords)
 
-    // 取出中心点
-    const coords = feature.geometry.coordinates[0] as [number, number][]
-    const center = computeCentroid(coords)
+  const color = dynasty.color || '#e63946'
 
-    const color = dynasty.color || '#e63946'
+  const sourceId = 'dynasty-territory'
+  const fillLayer = 'dynasty-fill'
+  const lineLayer = 'dynasty-line'
+  const glowLayer = 'dynasty-glow'
+  const innerGlowLayer = 'dynasty-inner-glow'
+  const outerInkLayer = 'dynasty-outer-ink'
 
-    const sourceId = 'dynasty-territory'
-    const fillLayer = 'dynasty-fill'
-    const lineLayer = 'dynasty-line'
-    const glowLayer = 'dynasty-glow'
-    const innerGlowLayer = 'dynasty-inner-glow'
-    const outerInkLayer = 'dynasty-outer-ink'
-
-    const data: FeatureCollection = {
-      type: 'FeatureCollection',
-      features: [feature],
-    }
-
-    const transition = { duration: 900, delay: 0 }
-
-    if (map.getSource(sourceId)) {
-      // 更新数据（带平滑过渡）
-      ;(map.getSource(sourceId) as maplibregl.GeoJSONSource).setData(data)
-      // 设置 transition 后更新颜色和透明度 → MapLibre 自动渐变
-      map.setPaintProperty(fillLayer, 'fill-color-transition', transition)
-      map.setPaintProperty(fillLayer, 'fill-opacity-transition', transition)
-      map.setPaintProperty(lineLayer, 'line-color-transition', transition)
-      map.setPaintProperty(lineLayer, 'line-opacity-transition', transition)
-      map.setPaintProperty(glowLayer, 'line-color-transition', transition)
-      map.setPaintProperty(glowLayer, 'line-opacity-transition', transition)
-      map.setPaintProperty(innerGlowLayer, 'line-color-transition', transition)
-      map.setPaintProperty(innerGlowLayer, 'line-opacity-transition', transition)
-      map.setPaintProperty(outerInkLayer, 'line-color-transition', transition)
-      map.setPaintProperty(outerInkLayer, 'line-opacity-transition', transition)
-
-      map.setPaintProperty(fillLayer, 'fill-color', color)
-      map.setPaintProperty(fillLayer, 'fill-opacity', 0.42)
-      map.setPaintProperty(lineLayer, 'line-color', color)
-      map.setPaintProperty(lineLayer, 'line-opacity', 0.9)
-      map.setPaintProperty(glowLayer, 'line-color', color)
-      map.setPaintProperty(glowLayer, 'line-opacity', 0.45)
-      map.setPaintProperty(innerGlowLayer, 'line-color', color)
-      map.setPaintProperty(innerGlowLayer, 'line-opacity', 0.28)
-      map.setPaintProperty(outerInkLayer, 'line-color', color)
-      map.setPaintProperty(outerInkLayer, 'line-opacity', 0.18)
-    } else {
-      // 首次 → 添加 source + layer（带 transition 配置）
-      map.addSource(sourceId, { type: 'geojson', data })
-      // 外层墨晕（最宽最淡，模拟水墨洇开）
-      map.addLayer({
-        id: outerInkLayer,
-        type: 'line',
-        source: sourceId,
-        paint: {
-          'line-color': color,
-          'line-width': 28,
-          'line-opacity': 0,
-          'line-blur': 20,
-        },
-      })
-      // 外发光（宽散光，羽化边缘）
-      map.addLayer({
-        id: glowLayer,
-        type: 'line',
-        source: sourceId,
-        paint: {
-          'line-color': color,
-          'line-width': 14,
-          'line-opacity': 0,
-          'line-blur': 16,
-        },
-      })
-      // 内发光（中层）
-      map.addLayer({
-        id: innerGlowLayer,
-        type: 'line',
-        source: sourceId,
-        paint: {
-          'line-color': color,
-          'line-width': 5,
-          'line-opacity': 0,
-          'line-blur': 6,
-        },
-      })
-      // 填充（带羽化效果）
-      map.addLayer({
-        id: fillLayer,
-        type: 'fill',
-        source: sourceId,
-        paint: {
-          'fill-color': color,
-          'fill-opacity': 0,
-        },
-      })
-      // 边线（锐利）
-      map.addLayer({
-        id: lineLayer,
-        type: 'line',
-        source: sourceId,
-        paint: {
-          'line-color': color,
-          'line-width': 1.5,
-          'line-opacity': 0,
-        },
-      })
-      // 淡入
-      requestAnimationFrame(() => {
-        map.setPaintProperty(fillLayer, 'fill-opacity', 0.42)
-        map.setPaintProperty(lineLayer, 'line-opacity', 0.9)
-        map.setPaintProperty(glowLayer, 'line-opacity', 0.45)
-        map.setPaintProperty(innerGlowLayer, 'line-opacity', 0.28)
-        map.setPaintProperty(outerInkLayer, 'line-opacity', 0.18)
-      })
-    }
-
-    // === 都城标记：朱印 ===
-    const capitalCoords = CAPITAL_COORDS[dynasty.id]
-    if (capitalCoords) {
-      // 清理旧 marker
-      capitalMarkerMap.get(map)?.remove()
-      const el = document.createElement('div')
-      el.className = 'capital-seal'
-      // 取主要城市名：去除注释、多都城取第一个
-      const shortName = dynasty.capital
-        .split(/[/\uFF08(]/)[0]
-        .trim()
-        .slice(0, 2)
-      el.innerHTML = `<span>${shortName}</span>`
-      el.title = `${dynasty.name} · 都城：${dynasty.capital}`
-      el.style.setProperty('--capital-color', color)
-      const marker = new maplibregl.Marker({ element: el, anchor: 'bottom' })
-        .setLngLat(capitalCoords)
-        .addTo(map)
-      capitalMarkerMap.set(map, marker)
-    }
-    const eventFeatures: Feature[] = []
-    for (const ev of dynasty.events || []) {
-      if (!ev.coords) continue
-      eventFeatures.push({
-        type: 'Feature',
-        geometry: { type: 'Point', coordinates: ev.coords },
-        properties: {
-          id: `${dynasty.id}-${ev.year}-${ev.title}`,
-          year: ev.year,
-          title: ev.title,
-          desc: ev.desc,
-          location: ev.location || '',
-        },
-      })
-    }
-    const eventData: FeatureCollection = { type: 'FeatureCollection', features: eventFeatures }
-    const eventSourceId = 'event-markers'
-    const eventLayerId = 'event-dots'
-    const eventPulseId = 'event-pulse'
-
-    if (map.getSource(eventSourceId)) {
-      ;(map.getSource(eventSourceId) as maplibregl.GeoJSONSource).setData(eventData)
-      map.setPaintProperty(eventLayerId, 'circle-color', color)
-      map.setPaintProperty(eventPulseId, 'circle-color', color)
-    } else {
-      map.addSource(eventSourceId, { type: 'geojson', data: eventData })
-      // 脉冲外圈
-      map.addLayer({
-        id: eventPulseId,
-        type: 'circle',
-        source: eventSourceId,
-        paint: {
-          'circle-radius': 28,
-          'circle-color': color,
-          'circle-opacity': 0.4,
-          'circle-blur': 0.6,
-        },
-      })
-      // 核心圆点
-      map.addLayer({
-        id: eventLayerId,
-        type: 'circle',
-        source: eventSourceId,
-        paint: {
-          'circle-radius': 10,
-          'circle-color': color,
-          'circle-opacity': 1,
-          'circle-stroke-color': '#f5f0e6',
-          'circle-stroke-width': 2,
-          'circle-stroke-opacity': 0.9,
-        },
-      })
-    }
-
-    // 播放切换音效（如开启）
-    sound.playTransition()
-
-    // 飞行到中心
-    map.flyTo({
-      center: center,
-      zoom: 3.6,
-      duration: motionDuration(1800),
-      essential: true,
-    })
-  } catch (e) {
-    console.error('loadDynasty failed', e)
+  const data: FeatureCollection = {
+    type: 'FeatureCollection',
+    features: [feature],
   }
+
+  const transition = { duration: 900, delay: 0 }
+
+  if (map.getSource(sourceId)) {
+    // 更新数据（带平滑过渡）
+    ;(map.getSource(sourceId) as maplibregl.GeoJSONSource).setData(data)
+    map.setPaintProperty(fillLayer, 'fill-color-transition', transition)
+    map.setPaintProperty(fillLayer, 'fill-opacity-transition', transition)
+    map.setPaintProperty(lineLayer, 'line-color-transition', transition)
+    map.setPaintProperty(lineLayer, 'line-opacity-transition', transition)
+    map.setPaintProperty(glowLayer, 'line-color-transition', transition)
+    map.setPaintProperty(glowLayer, 'line-opacity-transition', transition)
+    map.setPaintProperty(innerGlowLayer, 'line-color-transition', transition)
+    map.setPaintProperty(innerGlowLayer, 'line-opacity-transition', transition)
+    map.setPaintProperty(outerInkLayer, 'line-color-transition', transition)
+    map.setPaintProperty(outerInkLayer, 'line-opacity-transition', transition)
+
+    map.setPaintProperty(fillLayer, 'fill-color', color)
+    map.setPaintProperty(fillLayer, 'fill-opacity', 0.42)
+    map.setPaintProperty(lineLayer, 'line-color', color)
+    map.setPaintProperty(lineLayer, 'line-opacity', 0.9)
+    map.setPaintProperty(glowLayer, 'line-color', color)
+    map.setPaintProperty(glowLayer, 'line-opacity', 0.45)
+    map.setPaintProperty(innerGlowLayer, 'line-color', color)
+    map.setPaintProperty(innerGlowLayer, 'line-opacity', 0.28)
+    map.setPaintProperty(outerInkLayer, 'line-color', color)
+    map.setPaintProperty(outerInkLayer, 'line-opacity', 0.18)
+  } else {
+    // 首次 → 添加 source + layer
+    map.addSource(sourceId, { type: 'geojson', data })
+    // 外层墨晕
+    map.addLayer({
+      id: outerInkLayer,
+      type: 'line',
+      source: sourceId,
+      paint: {
+        'line-color': color,
+        'line-width': 28,
+        'line-opacity': 0,
+        'line-blur': 20,
+      },
+    })
+    // 外发光
+    map.addLayer({
+      id: glowLayer,
+      type: 'line',
+      source: sourceId,
+      paint: {
+        'line-color': color,
+        'line-width': 14,
+        'line-opacity': 0,
+        'line-blur': 16,
+      },
+    })
+    // 内发光
+    map.addLayer({
+      id: innerGlowLayer,
+      type: 'line',
+      source: sourceId,
+      paint: {
+        'line-color': color,
+        'line-width': 5,
+        'line-opacity': 0,
+        'line-blur': 6,
+      },
+    })
+    // 填充
+    map.addLayer({
+      id: fillLayer,
+      type: 'fill',
+      source: sourceId,
+      paint: {
+        'fill-color': color,
+        'fill-opacity': 0,
+      },
+    })
+    // 边线
+    map.addLayer({
+      id: lineLayer,
+      type: 'line',
+      source: sourceId,
+      paint: {
+        'line-color': color,
+        'line-width': 1.5,
+        'line-opacity': 0,
+      },
+    })
+    // 淡入
+    requestAnimationFrame(() => {
+      map.setPaintProperty(fillLayer, 'fill-opacity', 0.42)
+      map.setPaintProperty(lineLayer, 'line-opacity', 0.9)
+      map.setPaintProperty(glowLayer, 'line-opacity', 0.45)
+      map.setPaintProperty(innerGlowLayer, 'line-opacity', 0.28)
+      map.setPaintProperty(outerInkLayer, 'line-opacity', 0.18)
+    })
+  }
+
+  // === 都城标记：朱印 ===
+  const capitalCoords = CAPITAL_COORDS[dynasty.id]
+  if (capitalCoords) {
+    capitalMarkerMap.get(map)?.remove()
+    const el = document.createElement('div')
+    el.className = 'capital-seal'
+    const shortName = dynasty.capital
+      .split(/[/\uFF08(]/)[0]
+      .trim()
+      .slice(0, 2)
+    el.innerHTML = `<span>${shortName}</span>`
+    el.title = `${dynasty.name} · 都城：${dynasty.capital}`
+    el.style.setProperty('--capital-color', color)
+    const marker = new maplibregl.Marker({ element: el, anchor: 'bottom' })
+      .setLngLat(capitalCoords)
+      .addTo(map)
+    capitalMarkerMap.set(map, marker)
+  }
+
+  // === 事件标记 ===
+  const eventFeatures: Feature[] = []
+  for (const ev of dynasty.events || []) {
+    if (!ev.coords) continue
+    eventFeatures.push({
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: ev.coords },
+      properties: {
+        id: `${dynasty.id}-${ev.year}-${ev.title}`,
+        year: ev.year,
+        title: ev.title,
+        desc: ev.desc,
+        location: ev.location || '',
+      },
+    })
+  }
+  const eventData: FeatureCollection = { type: 'FeatureCollection', features: eventFeatures }
+  const eventSourceId = 'event-markers'
+  const eventLayerId = 'event-dots'
+  const eventPulseId = 'event-pulse'
+
+  if (map.getSource(eventSourceId)) {
+    ;(map.getSource(eventSourceId) as maplibregl.GeoJSONSource).setData(eventData)
+    map.setPaintProperty(eventLayerId, 'circle-color', color)
+    map.setPaintProperty(eventPulseId, 'circle-color', color)
+  } else {
+    map.addSource(eventSourceId, { type: 'geojson', data: eventData })
+    map.addLayer({
+      id: eventPulseId,
+      type: 'circle',
+      source: eventSourceId,
+      paint: {
+        'circle-radius': 28,
+        'circle-color': color,
+        'circle-opacity': 0.4,
+        'circle-blur': 0.6,
+      },
+    })
+    map.addLayer({
+      id: eventLayerId,
+      type: 'circle',
+      source: eventSourceId,
+      paint: {
+        'circle-radius': 10,
+        'circle-color': color,
+        'circle-opacity': 1,
+        'circle-stroke-color': '#f5f0e6',
+        'circle-stroke-width': 2,
+        'circle-stroke-opacity': 0.9,
+      },
+    })
+  }
+
+  // 播放切换音效
+  sound.playTransition()
+
+  // 飞行到中心
+  map.flyTo({
+    center: center,
+    zoom: 3.6,
+    duration: motionDuration(1800),
+    essential: true,
+  })
 }
 
 /** 主要都城坐标（经度, 纬度） */
@@ -386,7 +402,7 @@ const CAPITAL_COORDS: Record<string, [number, number]> = {
   qing: [116.4, 39.9],
 }
 
-/** 都城朱印 Marker 缓存，避免泄露与类型污染 */
+/** 都城朱印 Marker 缓存 */
 const capitalMarkerMap = new WeakMap<maplibregl.Map, maplibregl.Marker>()
 
 /**

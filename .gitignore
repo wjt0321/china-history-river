@@ -12,3 +12,5 @@ Thumbs.db
 screenshots/dev.log
 screenshots/dev.err
 public/test-write.txt
+.codegraph/
+.reasonix/

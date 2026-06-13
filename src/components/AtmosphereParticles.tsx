@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useAppStore } from '@/stores/appStore'
+import { prefersReducedMotion } from '@/utils/motion'
 
 type ParticleType = 'fireflies' | 'dust' | 'petals' | 'snow'
 
@@ -60,6 +61,9 @@ export function AtmosphereParticles() {
   const selectedDynastyId = useAppStore((s) => s.selectedDynasty.id)
 
   useEffect(() => {
+    // prefers-reduced-motion：完全跳过粒子系统
+    if (prefersReducedMotion()) return
+
     const canvas = canvasRef.current
     if (!canvas) return
 

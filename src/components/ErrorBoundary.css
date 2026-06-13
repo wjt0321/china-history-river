@@ -1,0 +1,50 @@
+/* 错误边界 fallback 面板 */
+.error-boundary-fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: var(--color-bg);
+  z-index: 100;
+}
+
+.error-boundary-icon {
+  font-size: 48px;
+  opacity: 0.6;
+}
+
+.error-boundary-title {
+  font-family: var(--font-zh, "Noto Serif SC", serif);
+  font-size: 18px;
+  color: var(--color-text);
+}
+
+.error-boundary-message {
+  font-size: 13px;
+  color: var(--color-text-dim);
+  max-width: 360px;
+  text-align: center;
+  line-height: 1.5;
+  font-family: var(--font-mono, Consolas, monospace);
+}
+
+.error-boundary-reload {
+  margin-top: 8px;
+  padding: 8px 24px;
+  border: 1px solid var(--color-primary-dim);
+  background: transparent;
+  color: var(--color-primary);
+  font-family: var(--font-zh, "Noto Serif SC", serif);
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.error-boundary-reload:hover {
+  background: var(--color-primary);
+  color: var(--color-bg-deep);
+}

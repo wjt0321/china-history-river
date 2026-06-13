@@ -221,3 +221,48 @@
     bottom: 192px;
   }
 }
+
+/* Loading / Error 状态提示 */
+.map-status {
+  position: absolute;
+  bottom: 240px;
+  left: 24px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-family: var(--font-zh);
+  font-size: 13px;
+  color: var(--color-text-dim);
+  backdrop-filter: blur(12px);
+}
+
+.map-status-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--color-text-faint);
+  border-top-color: var(--dynasty-color, var(--color-primary));
+  border-radius: 50%;
+  animation: map-spin 0.8s linear infinite;
+}
+
+@keyframes map-spin {
+  to { transform: rotate(360deg); }
+}
+
+.map-status-error {
+  border-left: 3px solid var(--color-accent);
+}
+
+.map-status-error-icon {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.map-status-error-detail {
+  color: var(--color-accent);
+  font-weight: 600;
+}

@@ -1,60 +1,26 @@
 import { useEffect, useRef } from 'react'
 import { DYNASTIES_BY_TIME } from '@/data/dynasties'
 import { useAppStore } from '@/stores/appStore'
-import { MIN_YEAR, MAX_YEAR } from '@/stores/appStore'
 import { formatYear } from '@/utils/format'
 import { hexToRgba } from '@/utils/color'
+import {
+  type Segment,
+  PADDING,
+  CANVAS_HEIGHT,
+  CENTER_Y,
+  BRUSH_TOP,
+  BRUSH_BOTTOM,
+  BRUSH_CENTER,
+  HANDLE_W,
+  FULL_YEAR_RANGE,
+  DEFAULT_BRUSH_SPAN,
+  fullYearToX,
+  xToFullYear,
+  clampRange,
+  buildSegments,
+  findDynastyAtX,
+} from './timeline/TimelineSegments'
 import './Timeline.css'
-
-const FULL_YEAR_RANGE = MAX_YEAR - MIN_YEAR
-const PADDING = 40
-const CANVAS_HEIGHT = 200
-const CENTER_Y = 96
-const BRUSH_TOP = 154
-const BRUSH_BOTTOM = 192
-const BRUSH_CENTER = 173
-const HANDLE_W = 6
-const MIN_BRUSH_SPAN = 120 // 最小缩放窗口 120 年
-const DEFAULT_BRUSH_SPAN = 1200
-
-interface Segment {
-  dynasty: (typeof DYNASTIES_BY_TIME)[number]
-  startX: number
-  endX: number
-  midX: number
-  riverHalfWidth: number
-  index: number
-}
-
-/** 全时间轴 → x（用于 brush 条） */
-function fullYearToX(year: number, width: number): number {
-  return PADDING + ((year - MIN_YEAR) / FULL_YEAR_RANGE) * (width - PADDING * 2)
-}
-
-/** 当前视图时间轴 → x（用于主河流） */
-function viewYearToX(year: number, width: number, startYear: number, endYear: number): number {
-  const range = endYear - startYear
-  return PADDING + ((year - startYear) / range) * (width - PADDING * 2)
-}
-
-function xToFullYear(x: number, width: number): number {
-  return MIN_YEAR + ((x - PADDING) / (width - PADDING * 2)) * FULL_YEAR_RANGE
-}
-
-
-function clampRange(start: number, end: number): { startYear: number; endYear: number } {
-  let s = Math.max(MIN_YEAR, Math.min(MAX_YEAR - MIN_BRUSH_SPAN, start))
-  let e = Math.max(MIN_YEAR + MIN_BRUSH_SPAN, Math.min(MAX_YEAR, end))
-  if (e - s < MIN_BRUSH_SPAN) {
-    if (s + MIN_BRUSH_SPAN > MAX_YEAR) {
-      s = MAX_YEAR - MIN_BRUSH_SPAN
-      e = MAX_YEAR
-    } else {
-      e = s + MIN_BRUSH_SPAN
-    }
-  }
-  return { startYear: s, endYear: e }
-}
 
 export function Timeline() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -85,12 +51,7 @@ export function Timeline() {
 
     const getDynastyAtX = (x: number) => {
       const { timeRange } = useAppStore.getState()
-      for (const d of DYNASTIES_BY_TIME) {
-        const startX = viewYearToX(d.startYear, width, timeRange.startYear, timeRange.endYear)
-        const endX = viewYearToX(d.endYear, width, timeRange.startYear, timeRange.endYear)
-        if (x >= startX && x <= endX) return d
-      }
-      return null
+      return findDynastyAtX(x, width, timeRange)
     }
 
     let isInBrush = false
@@ -131,11 +92,21 @@ export function Timeline() {
       if (brushDrag.active) {
         const { mode, startX, startRangeStart, startRangeEnd } = brushDrag
         if (mode === 'pan') {
-          const px = (x - startX) / (width - PADDING * 2) * FULL_YEAR_RANGE
+          const px = ((x - startX) / (width - PADDING * 2)) * FULL_YEAR_RANGE
           let s = startRangeStart - px
           let e = startRangeEnd - px
-          if (e > MAX_YEAR) { const d = e - MAX_YEAR; e -= d; s -= d }
-          if (s < MIN_YEAR) { const d = MIN_YEAR - s; s += d; e += d }
+          const maxYear = Math.max(...DYNASTIES_BY_TIME.map((d) => d.endYear))
+          if (e > maxYear) {
+            const d = e - maxYear
+            e -= d
+            s -= d
+          }
+          const minYear = Math.min(...DYNASTIES_BY_TIME.map((d) => d.startYear))
+          if (s < minYear) {
+            const d = minYear - s
+            s += d
+            e += d
+          }
           useAppStore.getState().setTimeRange(clampRange(s, e))
         } else if (mode === 'resize-left') {
           const year = xToFullYear(x, width)
@@ -229,8 +200,7 @@ export function Timeline() {
       const seg = segments.find((s) => x >= s.startX && x <= s.endX)
       if (!seg) {
         return segments.reduce(
-          (closest, s) =>
-            Math.abs(x - s.midX) < Math.abs(x - closest.midX) ? s : closest,
+          (closest, s) => (Math.abs(x - s.midX) < Math.abs(x - closest.midX) ? s : closest),
           segments[0],
         ).riverHalfWidth
       }
@@ -264,20 +234,7 @@ export function Timeline() {
       const time = performance.now() / 1000
       const phase = time * 0.4
 
-      // 当前视图下的河段
-      const segments: Segment[] = DYNASTIES_BY_TIME.map((d, i) => {
-        const startX = viewYearToX(d.startYear, width, timeRange.startYear, timeRange.endYear)
-        const endX = viewYearToX(d.endYear, width, timeRange.startYear, timeRange.endYear)
-        const riverHalfWidth = Math.min(48, Math.max(10, (d.peakArea || 100) / 30)) / 2
-        return {
-          dynasty: d,
-          startX,
-          endX,
-          midX: (startX + endX) / 2,
-          riverHalfWidth,
-          index: i,
-        }
-      })
+      const segments = buildSegments(width, timeRange)
 
       // 1. 河流填充
       segments.forEach((seg) => {
@@ -288,7 +245,6 @@ export function Timeline() {
         const isHovered = dynasty.id === hoveredDynastyId
 
         ctx.beginPath()
-
         for (let x = startX; x <= endX; x += 1) {
           let hw = riverHalfWidth
           if (prevSeg && x < startX + 20) {
@@ -303,7 +259,6 @@ export function Timeline() {
           if (x === startX) ctx.moveTo(x, CENTER_Y + wave - hw)
           else ctx.lineTo(x, CENTER_Y + wave - hw)
         }
-
         for (let x = endX; x >= startX; x -= 1) {
           let hw = riverHalfWidth
           if (prevSeg && x < startX + 20) {
@@ -317,7 +272,6 @@ export function Timeline() {
           const wave = Math.sin(x * 0.015 + phase) * 5
           ctx.lineTo(x, CENTER_Y + wave + hw)
         }
-
         ctx.closePath()
 
         const color = dynasty.color || '#4ECDC4'
@@ -326,16 +280,10 @@ export function Timeline() {
         const blendRatio = Math.min(0.2, 20 / segWidth)
 
         const grad = ctx.createLinearGradient(startX, 0, endX, 0)
-        grad.addColorStop(
-          0,
-          hexToRgba(prevSeg ? prevSeg.dynasty.color || color : color, baseOpacity * 0.7),
-        )
+        grad.addColorStop(0, hexToRgba(prevSeg ? prevSeg.dynasty.color || color : color, baseOpacity * 0.7))
         grad.addColorStop(blendRatio, hexToRgba(color, baseOpacity))
         grad.addColorStop(1 - blendRatio, hexToRgba(color, baseOpacity))
-        grad.addColorStop(
-          1,
-          hexToRgba(nextSeg ? nextSeg.dynasty.color || color : color, baseOpacity * 0.7),
-        )
+        grad.addColorStop(1, hexToRgba(nextSeg ? nextSeg.dynasty.color || color : color, baseOpacity * 0.7))
 
         ctx.fillStyle = grad
         ctx.fill()
@@ -411,7 +359,7 @@ export function Timeline() {
         const { dynasty, midX, index } = seg
         const isActive = dynasty.id === selectedDynastyId
         const segWidth = seg.endX - seg.startX
-        if (segWidth < 36) return // 太窄不显示标签
+        if (segWidth < 36) return
         const labelY = index % 2 === 0 ? CENTER_Y - 45 : CENTER_Y + 55
 
         ctx.font = `${isActive ? 'bold 15px' : '500 12px'} var(--font-zh, "Noto Serif SC", "Microsoft YaHei", serif)`
@@ -425,7 +373,7 @@ export function Timeline() {
         ctx.fillText(yearText, midX, labelY + 14)
       })
 
-      // 7. Brush 条（底部缩放控制器）
+      // 7. Brush 条
       drawBrush(ctx, width, timeRange, selectedDynastyId)
 
       animId = requestAnimationFrame(draw)
@@ -453,7 +401,6 @@ export function Timeline() {
         ctx.fillRect(sx, trackY - trackH / 2, Math.max(1, ex - sx), trackH)
       })
 
-      // 当前窗口
       const wx1 = fullYearToX(timeRange.startYear, width)
       const wx2 = fullYearToX(timeRange.endYear, width)
       const dynastyColor = DYNASTIES_BY_TIME.find((d) => d.id === selectedDynastyId)?.color || '#b8943a'
@@ -465,12 +412,10 @@ export function Timeline() {
       ctx.shadowColor = dynastyColor
       ctx.shadowBlur = 10
 
-      // 左右把手
       ctx.fillStyle = hexToRgba(dynastyColor, 0.9)
       ctx.fillRect(wx1 - HANDLE_W / 2, trackY - trackH / 2 - 2, HANDLE_W, trackH + 4)
       ctx.fillRect(wx2 - HANDLE_W / 2, trackY - trackH / 2 - 2, HANDLE_W, trackH + 4)
 
-      // 年份标签
       ctx.font = '9px var(--font-mono, "SF Mono", Consolas, monospace)'
       ctx.fillStyle = 'rgba(168, 160, 144, 0.7)'
       ctx.textAlign = 'left'
@@ -479,7 +424,6 @@ export function Timeline() {
       ctx.fillText(formatYear(timeRange.endYear, 'short'), width - PADDING, BRUSH_BOTTOM - 2)
       ctx.restore()
 
-      // 分隔线
       ctx.beginPath()
       ctx.moveTo(PADDING, BRUSH_TOP - 6)
       ctx.lineTo(width - PADDING, BRUSH_TOP - 6)
