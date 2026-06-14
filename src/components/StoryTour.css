@@ -1,0 +1,123 @@
+.story-tour {
+  position: absolute;
+  left: 24px;
+  top: 180px;
+  z-index: 6;
+  pointer-events: none;
+}
+
+.story-card {
+  width: min(320px, calc(100vw - 48px));
+  margin-bottom: 12px;
+  padding: 16px 18px;
+  border-radius: 12px;
+  pointer-events: auto;
+}
+
+.story-kicker {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--dynasty-color, var(--color-primary));
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+}
+
+.story-title {
+  font-family: var(--font-zh);
+  font-size: 20px;
+  color: var(--color-paper);
+  letter-spacing: 4px;
+  margin-bottom: 8px;
+}
+
+.story-narration {
+  font-family: var(--font-zh);
+  font-size: 13px;
+  line-height: 1.75;
+  color: var(--color-text-dim);
+  letter-spacing: 0.5px;
+}
+
+.story-progress {
+  height: 3px;
+  margin-top: 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.story-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--dynasty-color, var(--color-primary));
+  box-shadow: 0 0 12px var(--dynasty-glow, rgba(184, 148, 58, 0.28));
+  transition: width 0.4s var(--ease-out), background 0.4s var(--ease-out);
+}
+
+.story-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 999px;
+  pointer-events: auto;
+}
+
+.story-btn,
+.story-primary,
+.story-launcher {
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 7px 12px;
+  background: transparent;
+  color: var(--color-text-dim);
+  font-family: var(--font-zh);
+  font-size: 12px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.2s var(--ease-out);
+}
+
+.story-launcher {
+  padding: 7px 14px;
+  opacity: 0.72;
+  pointer-events: auto;
+}
+
+.story-primary {
+  color: var(--color-bg-deep);
+  background: var(--dynasty-color, var(--color-primary));
+  border-color: var(--dynasty-color, var(--color-primary));
+  font-weight: 700;
+}
+
+.story-btn:hover:not(:disabled),
+.story-primary:hover:not(:disabled),
+.story-launcher:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+  opacity: 1;
+}
+
+.story-btn:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .story-tour {
+    left: 12px;
+    right: auto;
+    top: 72px;
+  }
+
+  .story-card {
+    width: min(320px, calc(100vw - 24px));
+  }
+
+  .story-controls {
+    max-width: calc(100vw - 24px);
+    overflow-x: auto;
+  }
+}

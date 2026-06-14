@@ -1,306 +1,707 @@
-# 迭代路线图 — china-history-river
+# 迭代建议与路线图 — china-history-river
 
-> 基于 2026-06 项目审查生成。
-> 阶段 1-3 已完成，阶段 4 待执行。
+> 基于 2026-06 项目审查整理。本文档用于后续迭代排期与任务拆分。  
+> 当前验证状态：`type-check` / `lint` / `test` / `build` 均通过；生产构建存在 MapLibre 大 chunk 警告。  
+> 迭代状态：P0-P6 核心任务已基本落地，当前进入视觉回归、截图素材与内容精细化阶段。
 
 ---
 
-## 当前状态总览
+## 1. 当前项目状态
 
-| 维度 | 评分 | 说明 |
+### 1.1 项目定位
+
+**中华 5000 年历史长河**是一件以“中国历代疆域动态变化”为主线的交互式数据可视化网页作品，目标是用于个人作品集展示。
+
+当前核心体验已经成型：
+
+- 河流式 Canvas 时间轴：按朝代切换与 brush 缩放。
+- MapLibre 动态疆域地图：GeoJSON 疆域、都城标记、事件点联动。
+- 卷轴式详情面板：概览 / 帝王 / 大事 / 文化 / 疆域五类信息。
+- 氛围粒子系统：萤火 / 尘埃 / 花瓣 / 落雪。
+- 开场动画、墨迹装饰、自定义光标、错误边界、基础测试已具备。
+
+### 1.2 质量验证结果
+
+本次审查已运行：
+
+```bash
+npm run type-check
+npm run test
+npm run lint
+npm run build
+```
+
+结果：
+
+| 命令 | 状态 | 说明 |
 |---|---|---|
-| 视觉完成度 | ⭐⭐⭐⭐⭐ | 已达到「数字博物馆 / 古画卷轴」定位 |
-| 数据完整度 | ⭐⭐⭐⭐ | 14 朝代 12 维度，部分朝代事件偏少 |
-| 代码架构 | ⭐⭐⭐ | 巨型组件、缺 Hook 抽象 |
-| 工程质量 | ⭐⭐ | 零测试、无错误边界、TS 检查宽松 |
-| 可维护性 | ⭐⭐⭐ | 文件过大、CSS/JS 混用 |
-| 性能 | ⭐⭐⭐⭐ | Canvas 持续渲染可优化 |
+| `npm run type-check` | ✅ 通过 | 无 TypeScript 编译错误 |
+| `npm run test` | ✅ 通过 | 4 个测试文件，42 个测试全部通过 |
+| `npm run lint` | ✅ 通过 | ESLint 无错误输出 |
+| `npm run build` | ✅ 通过 | Vite 构建成功，但 MapLibre chunk 较大 |
+
+构建警告摘要：
+
+```txt
+assets/maplibre-*.js 约 801 kB，gzip 后约 218 kB
+Some chunks are larger than 500 kB after minification.
+```
+
+### 1.3 当前优势
+
+| 维度 | 评价 |
+|---|---|
+| 主题辨识度 | 高。历史长河 + 疆域演变具备作品集记忆点 |
+| 视觉统一性 | 高。数字博物馆 / 古画卷轴风格明确 |
+| 技术完整度 | 较高。React + MapLibre + Canvas + Zustand + Framer Motion 组合完整 |
+| 内容结构 | 较完整。14 朝代、12 维度数据模型已经成型 |
+| 工程基础 | 良好。已有测试、错误边界、hooks、utils、构建脚本 |
+
+### 1.4 主要问题
+
+| 问题 | 影响 | 优先级 |
+|---|---|---|
+| MapLibre 第三方 chunk 仍较大 | 已通过懒加载隔离，但构建仍提示大 chunk | 中 |
+| `AtmosphereParticles` 仍偏长 | 后续维护与测试成本较高 | 中 |
+| 移动端详情面板尚未 bottom sheet 化 | 窄屏体验仍可继续优化 | 中 |
+| README 截图 / GIF 展示素材未补齐 | 影响 GitHub 作品集第一印象 | 中 |
+| 逐朝代来源 URL 与争议标签仍较粗 | 内容可信度可继续精细化 | 中 |
 
 ---
 
-## 迭代优先级原则
+## 2. 迭代原则
 
-1. **先固基，后加花** — 测试 + 错误处理 > 视觉打磨 > 新功能
-2. **增量改动** — 每个子任务可独立完成和验证
-3. **不破坏现有功能** — 重构时保持面级行为不变
-4. **每完成一个 tick 可 commit**
+后续不建议继续盲目堆视觉特效，而应围绕以下方向迭代：
 
----
+1. **更快打开**：首屏性能、懒加载、资源控制。
+2. **更好讲故事**：叙事模式、朝代巡游、事件联动。
+3. **更可信**：来源标注、疆域免责声明、争议内容区分。
+4. **更易分享**：URL 状态同步、README 展示、截图/GIF。
+5. **更适合移动端**：Pointer Events、底部抽屉、响应式导航。
 
-## 阶段 4A — 工程质量加固（🔴 高优先，预计 2-3 天）
+每次迭代完成后至少运行：
 
-> 目标：让面试官看到的不只是好看的 UI，更是扎实的工程功底。
-
-### 4A.1 添加测试框架
-
-```
-[ ] 安装 vitest + jsdom + @testing-library/react
-[ ] 创建 src/utils/__tests__/format.test.ts
-      - formatYear：公元前/公元、short/full 风格
-[ ] 创建 src/utils/__tests__/color.test.ts
-      - hexToRgba：6位hex、3位hex、边界 alpha
-      - adjustBrightness：正值变亮、负值变暗、cap 在 0-255
-[ ] 创建 src/stores/__tests__/appStore.test.ts
-      - setSelected：切换朝代后 isDetailOpen 应为 true
-      - hoveredDynastyId：hover 预览态正确
-      - timeRange：resetTimeRange 恢复全范围
-      - soundEnabled：开关切换
-[ ] 创建 src/data/__tests__/dynasties.test.ts
-      - 每个朝代必须有 id / name / startYear / endYear / geoFile
-      - startYear < endYear
-      - events 中每个有坐标的事件必须同时有 coords[0] 和 coords[1]
-      - color 必须是合法 hex
-[ ] 添加 npm run test 脚本到 package.json
-```
-
-### 4A.2 添加错误边界
-
-```
-[ ] 创建 src/components/ErrorBoundary.tsx
-      - Class Component（React 错误边界必须是 class）
-      - hasError state + getDerivedStateFromError
-      - fallback 接受 ReactNode prop
-      - 显示「出错了」+ 错误信息 + 重新加载按钮
-[ ] 在 App.tsx 中包裹 MapView / Timeline / DetailPanel
-[ ] 错误边界 fallback 样式参考 global.css 的 glass-panel
-```
-
-### 4A.3 开启 TypeScript 严格检查
-
-```
-[ ] tsconfig.json 中设置：
-      - noUnusedLocals: true
-      - noUnusedParameters: true
-[ ] 运行 npm run type-check，逐个修复警告
-[ ] 未使用的变量加 _ 前缀或删除
-[ ] 未使用的参数加 _ 前缀
-```
-
-### 4A.4 提取自定义 Hooks
-
-```
-[ ] 创建 src/hooks/useCanvasAnimation.ts
-      - 封装 rAF 循环 + resize + visibilitychange
-      - 接受 canvasRef + draw(ctx, dt) 回调
-      - 返回 { start, stop }
-      - Timeline.tsx 改用此 Hook
-
-[ ] 创建 src/hooks/useResizeObserver.ts
-      - 封装 ResizeObserver 监听容器尺寸
-      - 返回 width / height / dpr
-      - Timeline.tsx 和 AtmosphereParticles.tsx 共用
-
-[ ] 创建 src/hooks/useMapTerritory.ts
-      - 封装王朝疆域加载 + 缓存 + loading/error 状态
-      - 返回 { isLoading, error }
-      - MapView.tsx 中的 loadDynasty 改为调用此 Hook
-```
-
-### 4A.5 GeoJSON 加载状态
-
-```
-[ ] MapView.tsx loadDynasty 增加 loading / error 状态
-[ ] Loading：地图左下角显示半透明「加载疆域数据…」提示
-[ ] Error：地图左下角显示「疆域数据加载失败」+ 朝代名
-[ ] 超时处理：fetch 10s 超时
+```bash
+npm run type-check
+npm run test
+npm run lint
+npm run build
 ```
 
 ---
 
-## 阶段 4B — 组件拆分与代码卫生（🟡 中优先，预计 2-3 天）
+## 3. 推荐优先级总览
 
-> 目标：每个文件不超过 300 行，职责单一，方便测试和维护。
+| 优先级 | 方向 | 目标 |
+|---|---|---|
+| P0 | 性能与首屏体验 | 降低首屏 JS 压力，消除明显构建警告 |
+| P1 | 安全与工程细节 | 修复 popup HTML 注入风险，补充数据完整性测试 |
+| P2 | 作品集文档展示 | 更新 README、补充截图与设计说明 |
+| P3 | 交互体验增强 | 前后朝代切换、事件地图双向联动、URL 分享 |
+| P4 | 移动端与可访问性 | Pointer Events、ARIA、键盘操作、bottom sheet |
+| P5 | 叙事模式 | 从“展示型可视化”升级为“数字叙事作品” |
 
-### 4B.1 拆分 DetailPanel（584 行 → 6 文件）
+---
 
-```
-[ ] 创建 src/components/detail/
-[ ] OverviewTab.tsx    — 概览（简介 + 兴衰原因 + 史家评价）
-[ ] EmperorsTab.tsx    — 帝王长廊（卡片展开/折叠）
-[ ] EventsTab.tsx      — 大事年表（含地图联动 hover/click）
-[ ] CultureTab.tsx     — 文化遗产（文学/艺术/科技网格）
-[ ] TerritoryTab.tsx   — 疆域变化 + 数据概览 + 经济数据
-[ ] DataBar.tsx        — 数据对比条（可复用组件）
-```
+# P0：性能与首屏体验优化
 
-### 4B.2 拆分 Timeline（520 行 → 3 文件）
+## P0.1 MapView 懒加载
 
-```
-[ ] 创建 src/components/timeline/
-[ ] RiverCanvas.tsx       — Canvas 主河流绘制（正弦曲线 + 渐变 + 脉冲）
-[ ] BrushController.tsx   — Brush 缩放条（拖拽把手 + 平移窗口 + 点击）
-[ ] TimelineSegments.ts   — 河段数据计算（纯函数，可测试）
-[ ] Timeline.tsx          — 组装层（状态 + useCanvasAnimation）
-```
+### 背景
 
-### 4B.3 拆分 MapView（404 行 → 4 文件）
+`maplibre-gl` 是当前最大依赖，构建后单独 chunk 约 `801 kB`。目前 `App.tsx` 初始渲染即挂载 `MapView`，开场动画期间地图也会参与加载和初始化。
 
-```
-[ ] 创建 src/components/map/
-[ ] MapCore.tsx         — 地图初始化 + 容器（封装 useEffect 创建/销毁）
-[ ] DynastyLayer.tsx    — 疆域 GeoJSON 层（加载 + fade 过渡 + 多层光晕）
-[ ] CapitalMarker.tsx   — 都城朱印标记
-[ ] EventMarker.tsx     — 事件圆点 + 脉冲 + Popup 交互
-[ ] MapView.tsx         — 组装层
+### 建议
+
+将 `MapView` 改为 `React.lazy` + `Suspense`：
+
+```tsx
+import { lazy, Suspense } from 'react'
+
+const LazyMapView = lazy(() =>
+  import('@/components/MapView').then((m) => ({ default: m.MapView })),
+)
 ```
 
-### 4B.4 清理杂项
+并考虑在 `IntroAnimation` 完成后再挂载地图：
 
-```
-[ ] 将 public/images/dl-*.mjs 移到 scripts/downloads/ 目录
-[ ] 检查 public/ 下是否有未使用的图片，移除或用 LQIP 替代
-[ ] 统一 styles 导入方式：所有组件级 CSS 改为 CSS Modules 或集中管理
-[ ] CSS 变量注入统一：优先在 global.css 中定义，减少 JS style.setProperty
+```tsx
+{introDone && (
+  <Suspense fallback={<div className="map-loading">加载地图中…</div>}>
+    <LazyMapView />
+  </Suspense>
+)}
 ```
 
-### 4B.5 ESLint 加强
+### 验收标准
 
+- `npm run build` 通过。
+- 首屏不因地图初始化导致明显卡顿。
+- 地图懒加载 fallback 视觉上不突兀。
+- MapLibre chunk 仍可能存在，但不阻塞首屏主交互。
+
+---
+
+## P0.2 DetailPanel 懒加载
+
+### 背景
+
+详情面板依赖 Framer Motion，并包含多个 tab 子组件。虽然 `motion` 已经单独拆包，但详情面板不一定需要首屏立刻加载。
+
+### 建议
+
+将 `DetailPanel` 改为懒加载，仅在需要打开详情时加载。
+
+### 验收标准
+
+- 点击“查看详情”时正常显示面板。
+- 初次打开时有轻量 loading 或不明显延迟。
+- tab 切换动画保持正常。
+
+---
+
+## P0.3 生产环境 sourcemap 控制
+
+### 背景
+
+`vite.config.ts` 当前配置：
+
+```ts
+sourcemap: true
 ```
-[ ] 安装 eslint-plugin-import
-[ ] 规则：import 分组排序（builtin → external → internal → parent → sibling）
-[ ] 规则：禁止循环依赖
-[ ] 补充 .eslintignore（dist/build 目录）
+
+公开作品集部署通常不需要默认暴露 sourcemap。
+
+### 建议
+
+改为按环境控制：
+
+```ts
+sourcemap: process.env.NODE_ENV !== 'production'
+```
+
+或者直接关闭：
+
+```ts
+sourcemap: false
+```
+
+### 验收标准
+
+- `npm run build` 正常。
+- `dist/assets` 中不再默认输出 `.map` 文件，或仅在需要调试时输出。
+
+---
+
+## P0.4 建立性能预算
+
+### 建议目标
+
+- 单个业务 chunk 尽量小于 300 kB minified。
+- 第三方大 chunk 必须有说明。
+- 图片资源通过 `npm run optimize-images` 处理。
+- 每次重大视觉改动后跑一次 Lighthouse 或手动性能检查。
+
+---
+
+# P1：安全与工程细节
+
+## P1.1 Map popup 从 `setHTML` 改为 `setDOMContent`
+
+### 背景
+
+`src/components/MapView.tsx` 中事件弹窗使用字符串拼接：
+
+```ts
+popup.setHTML(`...${props.title}...${props.desc}...`)
+```
+
+当前数据来自本地文件，风险较低；但从工程规范看，直接拼接 HTML 不够稳妥。
+
+### 建议
+
+使用 DOM API 创建节点，并通过 `textContent` 写入文本：
+
+```ts
+const root = document.createElement('div')
+root.className = 'event-popup'
+
+const title = document.createElement('div')
+title.className = 'event-popup-title'
+title.textContent = props.title
+
+root.append(title)
+popup.setDOMContent(root)
+```
+
+### 验收标准
+
+- 地图事件 popup 视觉不变。
+- 不再使用用户/数据字段拼接 HTML。
+- `npm run lint` / `npm run test` / `npm run build` 通过。
+
+---
+
+## P1.2 补充地图与数据完整性测试
+
+### 建议测试项
+
+新增或扩展 `src/data/__tests__/dynasties.test.ts`：
+
+- 每个 `dynasty.id` 都有对应 `public/dynasties/{id}.json`。
+- 每个 `dynasty.geoFile` 指向的文件存在。
+- 每个 GeoJSON 坐标均为 `[longitude, latitude]` 数字对。
+- 每个有 `coords` 的历史事件都具备合法经纬度。
+- 每个朝代都有 `color`，且为合法 hex。
+- 每个朝代至少具备一条事件和一条文化信息。
+
+### 验收标准
+
+- `npm run test` 通过。
+- 如果后续新增朝代或改文件名，测试能及时发现遗漏。
+
+---
+
+## P1.3 提取 MapView 纯函数
+
+### 背景
+
+`MapView.tsx` 中混合了 React 生命周期、MapLibre 图层管理、GeoJSON 构造、popup 创建、质心计算等逻辑。
+
+### 建议
+
+优先提取无副作用逻辑：
+
+```txt
+src/components/map/
+├── mapData.ts        # buildEventFeatures / CAPITAL_COORDS
+├── mapPopup.ts       # createEventPopupContent
+├── mapGeometry.ts    # computeCentroid
+```
+
+### 验收标准
+
+- `computeCentroid` 可单独测试。
+- 事件 FeatureCollection 构造可单独测试。
+- `MapView.tsx` 行数下降，职责更集中。
+
+---
+
+# P2：作品集文档展示
+
+## P2.1 更新 README 当前状态
+
+### 背景
+
+README 仍写“阶段 1 完成”，但实际代码已经具备阶段 1-3 的大量能力：
+
+- 开场动画
+- 墨迹装饰
+- 自定义光标
+- brush 时间轴
+- ErrorBoundary
+- Vitest 测试
+- 图片优化脚本
+
+### 建议
+
+更新 README：
+
+- 项目状态改为“阶段 1-3 已完成，进入迭代优化阶段”。
+- 文档导航加入本文件：`docs/ITERATION.md`。
+- 增加质量验证命令。
+- 增加核心亮点介绍。
+- 增加截图/GIF 占位说明。
+
+### 验收标准
+
+- GitHub 首页能快速说明项目价值。
+- README 与实际代码状态一致。
+
+---
+
+## P2.2 增加设计说明文档
+
+建议新增：
+
+```txt
+docs/DESIGN_NOTES.md
+```
+
+建议内容：
+
+- 为什么使用“河流”作为时间隐喻。
+- 为什么采用“数字博物馆 / 古画卷轴”视觉语言。
+- 地图为何选择 MapLibre。
+- 疆域边界如何简化，局限是什么。
+- Canvas 与 React 状态之间的取舍。
+- 对性能、动效和可访问性的权衡。
+
+---
+
+## P2.3 增加截图与演示素材
+
+建议准备：
+
+```txt
+public/showcase/
+├── cover.png
+├── map-transition.gif
+├── timeline-brush.gif
+├── detail-panel.png
+└── mobile-preview.png
+```
+
+README 中展示：
+
+- 首屏开场截图
+- 朝代疆域切换 GIF
+- 详情面板截图
+- 时间轴 brush 交互 GIF
+
+---
+
+# P3：交互体验增强
+
+## P3.1 增加上一朝 / 下一朝按钮
+
+### 背景
+
+当前用户主要通过时间轴和下拉菜单切换朝代。详情面板内缺少顺序浏览入口。
+
+### 建议
+
+在详情面板 header 或 footer 增加：
+
+- 上一朝
+- 下一朝
+
+切换逻辑基于 `DYNASTIES_BY_TIME`。
+
+### 验收标准
+
+- 点击后切换 `selectedDynasty`。
+- 地图、粒子、时间轴主题同步更新。
+- 第一朝 / 最后一朝有禁用状态或循环切换策略。
+
+---
+
+## P3.2 事件与地图双向联动
+
+### 当前状态
+
+`EventsTab` hover 事件时会设置 `highlightedEventId`，地图事件点半径变化。
+
+### 建议增强
+
+- 点击事件列表项后，地图飞到该事件坐标。
+- 点击地图事件点后，详情面板自动打开并切到“大事”tab。
+- 事件列表滚动定位到对应事件。
+- 当前事件点显示更明显的脉冲动画。
+
+### 实现建议
+
+在 store 增加：
+
+```ts
+activeTab: DetailTabKey
+focusedEventId: string | null
+mapFocusTarget: [number, number] | null
+```
+
+或者先做轻量版：只实现“事件列表点击 → 地图飞行”。
+
+---
+
+## P3.3 URL 状态同步
+
+### 目标
+
+支持直接分享某个朝代或 tab：
+
+```txt
+/china-history-river/?dynasty=tang&tab=culture
+```
+
+### 建议同步状态
+
+- `dynasty`
+- `tab`
+- 可选：`event`
+- 可选：`detail=open|closed`
+
+### 验收标准
+
+- 刷新后恢复对应朝代。
+- 分享链接可直接打开目标视图。
+- 无效参数回退到默认朝代。
+
+---
+
+# P4：移动端与可访问性
+
+## P4.1 时间轴改用 Pointer Events
+
+### 背景
+
+`Timeline.tsx` 当前主要使用 mouse 事件：
+
+```ts
+mousemove / mousedown / mouseup / click
+```
+
+移动端触摸体验会受限。
+
+### 建议
+
+统一改为：
+
+```ts
+pointerdown
+pointermove
+pointerup
+pointerleave
+```
+
+并使用 `setPointerCapture` 提升拖拽稳定性。
+
+### 验收标准
+
+- 桌面鼠标行为不退化。
+- 移动端可拖拽 brush。
+- 点击朝代仍能正确切换。
+
+---
+
+## P4.2 详情面板移动端 bottom sheet
+
+### 建议
+
+桌面保持右侧卷轴，移动端改成底部抽屉：
+
+- 默认高度 `65vh`
+- 展开高度 `85vh`
+- 可拖拽关闭
+- tab 横向滚动
+- 地图保留在上半屏
+
+---
+
+## P4.3 ARIA 与键盘操作增强
+
+建议改进：
+
+- `TopBar` 朝代下拉：增加 `aria-expanded`、`aria-controls`。
+- 详情 tab：增加 `role="tablist"`、`role="tab"`、`aria-selected`。
+- 关闭按钮支持 `Esc`。
+- 朝代选择支持键盘上下移动。
+- Canvas 时间轴提供替代的朝代列表导航。
+
+---
+
+# P5：内容可信度与历史表达
+
+## P5.1 疆域示意免责声明
+
+### 建议文案
+
+在地图角落或疆域 tab 明确展示：
+
+> 本图为历史疆域简化示意，用于展示动态变化趋势，不代表精确边界或现代行政、主权范围。
+
+### 验收标准
+
+- 地图或详情面板中可见。
+- README / 文档中也有说明。
+
+---
+
+## P5.2 每朝代来源清单
+
+建议在 `Dynasty` 类型中扩展：
+
+```ts
+sources?: {
+  title: string
+  url?: string
+  type: '古籍' | '地图集' | '百科' | '论文' | '数据集'
+}[]
+```
+
+并在详情 footer 或“概览”tab 中展示。
+
+---
+
+## P5.3 区分“史实 / 评价 / 传说 / 争议”
+
+尤其是早期朝代内容，可给事件或叙述增加标签：
+
+- 文献记载
+- 考古证据
+- 传统说法
+- 学界争议
+
+这能显著提升内容可信度。
+
+---
+
+## P5.4 增加制度演变维度
+
+建议新增一个横跨朝代的专题视角：
+
+- 分封制
+- 郡县制
+- 察举制
+- 九品中正制
+- 三省六部
+- 科举制
+- 行省制
+- 内阁制
+- 军机处
+
+这可以让项目从“朝代陈列”提升到“历史结构变化”的表达。
+
+---
+
+# P6：叙事模式
+
+## P6.1 自动巡游模式
+
+### 目标
+
+增加“开始巡游”按钮，让用户无需主动探索，也能体验完整历史叙事。
+
+### 建议流程
+
+1. 夏商周：文明源流与礼制形成。
+2. 秦汉：大一统框架建立。
+3. 三国两晋南北朝：分裂、迁徙与融合。
+4. 隋唐：制度整合与开放盛世。
+5. 宋元明清：经济、技术、疆域与近世转折。
+
+### 自动联动
+
+- 自动切换朝代。
+- 地图 flyTo 当前疆域中心。
+- 时间轴同步高亮。
+- 详情面板显示简短旁白。
+- 事件点依次高亮。
+- 可暂停 / 继续 / 跳过。
+
+---
+
+## P6.2 叙事旁白数据结构
+
+建议新增：
+
+```txt
+src/data/storyline.ts
+```
+
+示例：
+
+```ts
+export interface StoryStep {
+  id: string
+  dynastyId: string
+  title: string
+  narration: string
+  focus?: {
+    type: 'territory' | 'event' | 'culture' | 'emperor'
+    eventId?: string
+  }
+  durationMs: number
+}
 ```
 
 ---
 
-## 阶段 4C — 性能优化（🟢 可选，预计 1-2 天）
+# 4. 推荐执行顺序
 
-> 目标：降低不必要的计算，优化首屏和切换体验。
+如果按最稳妥路线推进，建议：
 
-### 4C.1 Canvas 按需渲染
+```txt
+第一轮：P0 + P1
+  - MapView 懒加载
+  - DetailPanel 懒加载
+  - 关闭或控制生产 sourcemap
+  - popup 改 setDOMContent
+  - 补地图/GeoJSON 数据完整性测试
 
-```
-[ ] Timeline Canvas：仅在 timeRange / selectedDynastyId / hoveredDynastyId
-      变化时才重绘（dirty flag 模式）
-[ ] AtmosphereParticles Canvas：当前没有互动阶段时降低帧率
-      （从 60fps 降到 30fps 或更低）
-```
+第二轮：P2
+  - 更新 README
+  - 补截图/GIF
+  - 新增 DESIGN_NOTES.md
 
-### 4C.2 包体积优化
+第三轮：P3 + P4
+  - 上一朝/下一朝
+  - 事件地图双向联动
+  - URL 状态同步
+  - Pointer Events
+  - ARIA 增强
 
-```
-[ ] 安装 rollup-plugin-visualizer
-[ ] 分析 dist 产物，定位大依赖
-[ ] MapLibre GL 考虑按需加载（仅地图组件 mount 时动态 import）
-[ ] 检查是否有可移除的未使用依赖
-```
-
-### 4C.3 首屏优化
-
-```
-[ ] index.html 添加 preload 提示（Noto Serif SC 字体）
-[ ] 入场动画期间的背景色从 JS 抽到 HTML inline，避免闪白
-[ ] 考虑 base64 内联小尺寸 PNG（如印章图标）
-```
-
-### 4C.4 动画偏好适配
-
-```
-[ ] prefers-reduced-motion 下：完全跳过 AtmosphereParticles 初始化
-[ ] prefers-reduced-motion 下：Timeline Canvas 降为静态 SVG 渲染
-[ ] prefers-reduced-motion 下：map flyTo duration 设为 0
+第四轮：P5 + P6
+  - 疆域示意说明
+  - 来源清单
+  - 争议标签
+  - 自动巡游叙事模式
 ```
 
 ---
 
-## 阶段 4D — 功能增强（🟢 锦上添花，时间不限）
+# 5. 核心任务完成状态
 
-> 需要先确认是否值得投入。
+已完成：
 
-### 4D.1 滚动驱动叙事（原阶段 4 计划）
+1. ✅ **MapView 懒加载，降低首屏包体积压力。**
+2. ✅ **关闭生产 sourcemap 或按环境控制。**
+3. ✅ **Map popup 从 `setHTML` 改为 `setDOMContent`。**
+4. ✅ **README 更新到当前阶段 1-3 完成状态。**
+5. ✅ **补充 GeoJSON / dynasty 数据完整性测试。**
+6. ✅ **详情面板增加上一朝 / 下一朝。**
+7. ✅ **Canvas 时间轴改用 Pointer Events 支持移动端。**
+8. ✅ **设计并落地自动巡游叙事模式基础版。**
+9. ✅ **URL 状态同步与分享链接。**
+10. ✅ **事件列表点击聚焦地图事件点。**
+11. ✅ **ARIA 与键盘操作增强。**
+12. ✅ **疆域示意免责声明与主要来源清单入口。**
 
-```
-[ ] Intersection Observer 监听滚动位置，映射到时间轴进度
-[ ] 滚动时自动切换朝代、地图飞行、粒子过渡
-[ ] 参考：The Fallen of World War II (NZZ)
-[ ] 可切换：手动模式 / 叙事自动播放模式
-```
+后续收尾建议：
 
-### 4D.2 配乐
-
-```
-[ ] 基于 Web Audio API 的简单古风电子序列
-[ ] 朝代切换时音色/节奏变化
-[ ] 静音按钮已存在（soundEnabled），扩展即可
-```
-
-### 4D.3 中英双语
-
-```
-[ ] 创建 src/i18n/zh.ts + en.ts
-[ ] 朝代名/事件标题/UI 文案全部抽为 key
-[ ] TopBar 增加语言切换按钮
-[ ] 注意：古代专有名词（如「尚书·禹贡」）保留原文
-```
-
-### 4D.4 导出功能
-
-```
-[ ] 当前视图导出为 PNG（使用 canvas.toBlob 或 html2canvas）
-[ ] 时间轴 + 地图并列 SVG 导出
-[ ] 数据导出为 CSV
-```
+1. **补齐 `public/showcase/` 截图与 GIF。**
+2. **把移动端详情面板改成 bottom sheet。**
+3. **逐朝代补充精细化 `sources` URL。**
+4. **为早期朝代补“文献记载 / 考古证据 / 传统说法 / 学界争议”标签。**
+5. **增强自动巡游：事件级聚焦、旁白节奏、配乐。**
 
 ---
 
-## 执行建议
+# 6. 每次迭代检查清单
 
-### 优先级顺序
+每完成一个任务，至少检查：
 
-```
-阶段 4A（工程质量加固）  ← 立即开始，对其他迭代零影响
-    │
-阶段 4B（组件拆分）      ← 4A 完成后开始，为后续铺路
-    │
-阶段 4C（性能优化）      ← 看包体积分析结果决定是否全做
-    │
-阶段 4D（功能增强）      ← 有充足时间时挑感兴趣的做
+```bash
+npm run type-check
+npm run test
+npm run lint
+npm run build
 ```
 
-### 每次迭代的检查点
+涉及视觉或交互时，额外手动检查：
 
-- [ ] `npm run type-check` 通过
-- [ ] `npm run lint` 通过
-- [ ] `npm run test` 通过（4A 之后）
-- [ ] `npm run build` 成功
-- [ ] `npm run dev` 视觉回归（手动验证）
-
-### Git 提交粒度
-
-每个 `[ ]` tick 一个 commit，信息格式：
-```
-feat(tests): add formatYear / hexToRgba unit tests
-refactor(hooks): extract useCanvasAnimation from Timeline
-fix(ts): enable noUnusedLocals and fix 14 warnings
-```
+- 朝代切换是否正常。
+- 地图疆域与都城标记是否正常。
+- 详情面板 tab 是否正常。
+- 时间轴 hover / click / brush 是否正常。
+- `prefers-reduced-motion` 下是否无明显问题。
+- 移动端窄屏是否可用。
 
 ---
 
-## 已知 Bug（待修复）
+# 7. 结论
 
-### Bug #1 — MapView.tsx loadDynasty 函数中 fetch 失败日志位置错误
-- **位置**：`src/components/MapView.tsx` 约 L160 附近
-- **现象**：`console.warn` 语句后紧接着 `.trim().slice(0, 2)`，这不是 fetch 回调的一部分，是代码合并冲突或编辑错误
-- **影响**：可能在非 strict 模式下静默吞掉错误；fetch 返回非 ok 时行为不可预测
-- **建议**：在 4A.1 测试覆盖前手动修复
+当前项目已经完成从“核心可运行”到“可展示、可分享、可叙事”的主要迭代：
 
----
+> 更快打开、更好讲故事、更可信、更容易分享、更适合移动端。
 
-## 附录：当前文件大小一览
-
-| 文件 | 行数 | 建议上限 | 状态 |
-|---|---|---|---|
-| DetailPanel.tsx | 584 | 150 | 🔴 需拆分 |
-| Timeline.tsx | 520 | 150 | 🔴 需拆分 |
-| MapView.tsx | 404 | 200 | 🟡 需拆分 |
-| AtmosphereParticles.tsx | 368 | 200 | 🟡 可优化 |
-| TopBar.tsx | 115 | 150 | 🟢 合理 |
-| IntroAnimation.tsx | 159 | 200 | 🟢 合理 |
-| appStore.ts | 68 | 100 | 🟢 合理 |
-| dynasty.ts (types) | 121 | 150 | 🟢 合理 |
-| global.css | 205 | 300 | 🟢 合理 |
-
----
-
-**文档结束。随时可选取某个 tick 开始迭代。**
+下一阶段不再建议继续大幅堆功能，优先做 **视觉回归 + 截图/GIF 展示素材 + 移动端 bottom sheet + 来源精细化**。这样更适合作品集交付与线上展示。

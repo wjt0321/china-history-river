@@ -3,6 +3,7 @@ import { MapView } from '@/components/MapView'
 import { Timeline } from '@/components/Timeline'
 import { DetailPanel } from '@/components/DetailPanel'
 import { TopBar } from '@/components/TopBar'
+import { StoryTour } from '@/components/StoryTour'
 import { AtmosphereParticles } from '@/components/AtmosphereParticles'
 import { IntroAnimation } from '@/components/IntroAnimation'
 import { InkDecorations } from '@/components/InkDecorations'
@@ -34,6 +35,7 @@ function App() {
         <MapView />
       </ErrorBoundary>
       <TopBar />
+      {introDone && <StoryTour />}
       <ErrorBoundary name="详情面板">
         <DetailPanel />
       </ErrorBoundary>
@@ -48,4 +50,3 @@ function App() {
 }
 
 export default App
-

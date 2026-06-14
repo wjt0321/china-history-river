@@ -27,3 +27,19 @@
   pointer-events: none;
   z-index: 0;
 }
+
+.app-lazy-status {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  padding: 0.8rem 1.2rem;
+  color: var(--color-text-muted);
+  letter-spacing: 0.08em;
+  font-size: 0.9rem;
+}
+
+.app-lazy-status-panel {
+  top: 20%;
+}
