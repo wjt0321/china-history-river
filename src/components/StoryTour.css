@@ -1,7 +1,8 @@
 .story-tour {
   position: absolute;
   left: 24px;
-  top: 180px;
+  /* 位于左上"CURRENT TERRITORY"信息卡（top:80px, 约 120px 高）之下 */
+  top: 230px;
   z-index: 6;
   pointer-events: none;
 }
@@ -109,7 +110,7 @@
   .story-tour {
     left: 12px;
     right: auto;
-    top: 72px;
+    top: 230px;
   }
 
   .story-card {

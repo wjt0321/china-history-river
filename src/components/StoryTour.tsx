@@ -56,6 +56,10 @@ export function StoryTour() {
 
   return (
     <section className={`story-tour ${isPlaying ? 'is-playing' : ''}`} aria-label="自动巡游叙事模式">
+      {/* aria-live 巡游进度通告：屏幕阅读器在每段切换时播报朝代名 */}
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        {isPlaying && currentStep ? `巡游至第 ${stepIndex + 1} 段：${currentStep.title}` : ''}
+      </div>
       {isPlaying ? (
         <>
           <AnimatePresence mode="wait">

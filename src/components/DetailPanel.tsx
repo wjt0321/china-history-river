@@ -46,7 +46,10 @@ const tabContentVariants = {
 }
 
 export function DetailPanel() {
-  const { selectedDynasty, isDetailOpen, closeDetail } = useAppStore()
+  // 用选择器精确订阅，避免 hoveredDynastyId 等无关 state 变化时整面板重渲染
+  const selectedDynasty = useAppStore((s) => s.selectedDynasty)
+  const isDetailOpen = useAppStore((s) => s.isDetailOpen)
+  const closeDetail = useAppStore((s) => s.closeDetail)
   const [activeTab, setActiveTab] = useState<TabKey>('overview')
   const figureUrl = FIGURE_IMAGES[selectedDynasty.id]
   const sceneUrl = SCENE_IMAGES[selectedDynasty.id]

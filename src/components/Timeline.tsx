@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { DYNASTIES_BY_TIME } from '@/data/dynasties'
-import { useAppStore } from '@/stores/appStore'
+import { useAppStore, FULL_TIME_RANGE } from '@/stores/appStore'
 import { formatYear } from '@/utils/format'
 import { hexToRgba } from '@/utils/color'
 import {
@@ -24,7 +24,6 @@ import './Timeline.css'
 
 export function Timeline() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
@@ -447,17 +446,45 @@ export function Timeline() {
 
   const handleReset = () => useAppStore.getState().resetTimeRange()
 
+  // Canvas 不可键盘/屏幕阅读器操作，提供一个 visually-hidden 的原生 <select>
+  // 作为可达性替代入口：键盘 Tab 聚焦后用方向键选择朝代，等价于点击河段。
+  const selectedDynastyId = useAppStore((s) => s.selectedDynastyId)
+  // 仅当用户拖动过 brush（timeRange 偏离全范围）时才显示重置按钮，
+  // 否则按钮点了等于无操作，造成"假按钮"困惑。
+  const timeRange = useAppStore((s) => s.timeRange)
+  const isRangeModified =
+    timeRange.startYear !== FULL_TIME_RANGE.startYear ||
+    timeRange.endYear !== FULL_TIME_RANGE.endYear
+
   return (
     <div className="timeline">
       <div className="timeline-header">
         <span className="timeline-title">历史长河</span>
         <span className="timeline-divider" />
         <span className="timeline-subtitle">FIVE THOUSAND YEARS · CHINA</span>
-        <button className="timeline-reset" onClick={handleReset} aria-label="重置时间轴">
-          重置
-        </button>
+        {isRangeModified && (
+          <button className="timeline-reset" onClick={handleReset} aria-label="重置时间轴">
+            重置
+          </button>
+        )}
       </div>
-      <canvas ref={canvasRef} className="timeline-canvas" />
+      <canvas ref={canvasRef} className="timeline-canvas" aria-hidden="true" />
+      {/* 无障碍：键盘可达的朝代选择器，视觉隐藏但可 Tab 聚焦 */}
+      <label className="sr-only" htmlFor="timeline-dynasty-select">
+        选择朝代
+      </label>
+      <select
+        id="timeline-dynasty-select"
+        className="sr-only"
+        value={selectedDynastyId}
+        onChange={(e) => useAppStore.getState().setSelected(e.target.value)}
+      >
+        {DYNASTIES_BY_TIME.map((d) => (
+          <option key={d.id} value={d.id}>
+            {d.name}（{formatYear(d.startYear, 'short')} — {formatYear(d.endYear, 'short')}）
+          </option>
+        ))}
+      </select>
     </div>
   )
 }

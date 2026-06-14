@@ -1017,12 +1017,137 @@
   opacity: 0.85;
 }
 
+/* ====== 史料来源区块 ====== */
+.sources-section {
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px dashed var(--color-border-bright);
+}
+
+.sources-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.source-item {
+  display: flex;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--color-bg-elev);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  transition: border-color 0.25s;
+}
+
+.source-item:hover {
+  border-color: var(--dynasty-color, var(--color-primary));
+}
+
+.source-cat {
+  flex-shrink: 0;
+  align-self: flex-start;
+  font-family: var(--font-zh);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 7px;
+  border-radius: 3px;
+  letter-spacing: 1px;
+  line-height: 1.4;
+}
+
+.source-cat-古籍 {
+  background: rgba(184, 148, 58, 0.18);
+  color: var(--color-primary-bright);
+}
+.source-cat-现代 {
+  background: rgba(78, 205, 196, 0.15);
+  color: #6fbfb8;
+}
+.source-cat-地理 {
+  background: rgba(212, 160, 160, 0.15);
+  color: #d4a0a0;
+}
+.source-cat-图片 {
+  background: rgba(168, 160, 144, 0.15);
+  color: var(--color-text-dim);
+}
+
+.source-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.source-name {
+  font-family: var(--font-zh);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-paper);
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 3px;
+}
+
+.source-license {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--color-text-faint);
+  letter-spacing: 0.5px;
+}
+
+.source-usage {
+  font-family: var(--font-zh);
+  font-size: 11.5px;
+  color: var(--color-text-dim);
+  line-height: 1.55;
+}
+
+.territory-disclaimer {
+  font-family: var(--font-zh);
+  font-size: 10.5px;
+  color: var(--color-text-faint);
+  line-height: 1.6;
+  padding: 8px 10px;
+  background: rgba(139, 53, 53, 0.06);
+  border-left: 2px solid var(--color-accent-dim);
+  border-radius: 0 4px 4px 0;
+}
+
 /* 响应式 */
 @media (max-width: 768px) {
   .detail-panel {
     width: 100vw;
+    /* 移动端改为底部 sheet 隐喻：从底部上滑，顶部留出时间轴/状态栏可见 */
+    top: auto;
     bottom: 0;
-    padding: 24px 20px 100px;
+    /* 最高占视口 88%，留出顶部地图可见，符合 bottom sheet 习惯 */
+    max-height: 88vh;
+    padding: 0;
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.5);
+  }
+  /* 隐藏右侧木轴（移动端是底部 sheet，不需要侧轴头） */
+  .scroll-roller {
+    display: none;
+  }
+  /* 顶部 grab handle：bottom sheet 视觉暗示 */
+  .scroll-content {
+    right: 0;
+    padding: 20px 20px calc(36px + env(safe-area-inset-bottom, 0px)) 20px;
+  }
+  .scroll-content::before {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 4px;
+    margin: 0 auto 16px;
+    border-radius: 2px;
+    background: var(--color-border-bright);
   }
   .detail-name {
     font-size: 36px;
@@ -1040,6 +1165,28 @@
   }
   .economy-grid {
     grid-template-columns: 1fr;
+  }
+  /* 史料来源在窄屏紧凑化 */
+  .source-item {
+    padding: 8px 10px;
+  }
+}
+
+/* 超窄屏（≤ 380px）：进一步压缩字号与间距 */
+@media (max-width: 380px) {
+  .scroll-content {
+    padding: 16px 14px calc(28px + env(safe-area-inset-bottom, 0px)) 14px;
+  }
+  .detail-name {
+    font-size: 30px;
+    letter-spacing: 2px;
+  }
+  .detail-era {
+    font-size: 12px;
+  }
+  .tab-btn {
+    padding: 6px 10px;
+    font-size: 12px;
   }
 }
 

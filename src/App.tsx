@@ -10,23 +10,24 @@ import { InkDecorations } from '@/components/InkDecorations'
 import { CustomCursor } from '@/components/CustomCursor'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { useAppStore } from '@/stores/appStore'
-import { adjustBrightness, hexToRgba } from '@/utils/color'
+import { useUrlStateSync } from '@/hooks/useUrlStateSync'
 import { prefersReducedMotion } from '@/utils/motion'
 import './App.css'
 
 function App() {
-  const selectedDynasty = useAppStore((s) => s.selectedDynasty)
+  const selectedDynastyColor = useAppStore((s) => s.selectedDynasty.color)
   const [introDone, setIntroDone] = useState(prefersReducedMotion())
 
-  // 动态注入朝代主题色到 CSS 变量
+  // URL ↔ 选中朝代双向同步（深链分享：?d=tang）
+  useUrlStateSync()
+
+  // 动态注入当前朝代主题色到 CSS 变量 --dynasty-color。
+  // dim / bright / glow 三个派生色由 global.css 中的 color-mix 自动派生，
+  // 这里不再用 JS 覆盖，避免双重定义与维护混乱。
   useEffect(() => {
-    const color = selectedDynasty.color || '#e63946'
-    const root = document.documentElement
-    root.style.setProperty('--dynasty-color', color)
-    root.style.setProperty('--dynasty-color-dim', adjustBrightness(color, -30))
-    root.style.setProperty('--dynasty-color-bright', adjustBrightness(color, 40))
-    root.style.setProperty('--dynasty-glow', hexToRgba(color, 0.4))
-  }, [selectedDynasty])
+    const color = selectedDynastyColor || '#e63946'
+    document.documentElement.style.setProperty('--dynasty-color', color)
+  }, [selectedDynastyColor])
 
   return (
     <div className="app">

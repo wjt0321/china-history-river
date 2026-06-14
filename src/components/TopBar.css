@@ -172,7 +172,7 @@
 
 .dd-name {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-paper);
   min-width: 50px;
   letter-spacing: 2px;
@@ -210,6 +210,31 @@
 
 .sound-toggle:hover {
   border-color: var(--dynasty-color, var(--color-primary));
+  background: var(--color-bg-elev-2);
+}
+
+/* 分享按钮：与详情按钮同族，但更紧凑 */
+.share-toggle {
+  min-width: 56px;
+  height: 36px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  color: var(--color-text);
+  font-family: var(--font-zh);
+  font-size: 12px;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.2s var(--ease-out);
+}
+
+.share-toggle:hover {
+  border-color: var(--dynasty-color, var(--color-primary));
+  color: var(--dynasty-color, var(--color-primary-bright));
   background: var(--color-bg-elev-2);
 }
 

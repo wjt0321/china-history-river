@@ -1,10 +1,18 @@
 import type { Dynasty } from '@/types/dynasty'
 import { MetaItem } from './DataBar'
 import { SCENE_CAPTIONS } from './resourceMaps'
+import { DATA_SOURCES, TERRITORY_DISCLAIMER } from '@/data/sources'
 
 interface Props {
   d: Dynasty
   sceneUrl?: string
+}
+
+const CATEGORY_LABEL: Record<string, string> = {
+  古籍: '古籍',
+  现代: '现代',
+  地理: '地理',
+  图片: '图片',
 }
 
 export function OverviewTab({ d, sceneUrl }: Props) {
@@ -67,6 +75,25 @@ export function OverviewTab({ d, sceneUrl }: Props) {
           </figure>
         </section>
       )}
+
+      <section className="detail-section sources-section">
+        <h3 className="section-title">史料来源</h3>
+        <ul className="sources-list">
+          {DATA_SOURCES.map((s) => (
+            <li key={s.name} className="source-item">
+              <span className={`source-cat source-cat-${s.category}`}>{CATEGORY_LABEL[s.category]}</span>
+              <div className="source-body">
+                <div className="source-name">
+                  {s.name}
+                  <span className="source-license">{s.license}</span>
+                </div>
+                <div className="source-usage">{s.usage}</div>
+              </div>
+            </li>
+          ))}
+        </ul>
+        <p className="territory-disclaimer">{TERRITORY_DISCLAIMER}</p>
+      </section>
     </>
   )
 }

@@ -2,7 +2,8 @@ import { DYNASTIES_BY_TIME } from '@/data/dynasties'
 import { useAppStore } from '@/stores/appStore'
 import { sound } from '@/utils/sound'
 import { formatYear } from '@/utils/format'
-import { useState } from 'react'
+import { copyShareLink } from '@/hooks/useUrlStateSync'
+import { useEffect, useRef, useState } from 'react'
 import './TopBar.css'
 
 const SEAL_CHARS: Record<string, string> = {
@@ -23,8 +24,40 @@ const SEAL_CHARS: Record<string, string> = {
 }
 
 export function TopBar() {
-  const { selectedDynasty, isDetailOpen, soundEnabled, toggleDetail, setSoundEnabled } = useAppStore()
+  // 选择器精确订阅，避免 hoveredDynastyId/timeRange 等无关 state 变化时顶栏重渲染
+  const selectedDynasty = useAppStore((s) => s.selectedDynasty)
+  const isDetailOpen = useAppStore((s) => s.isDetailOpen)
+  const soundEnabled = useAppStore((s) => s.soundEnabled)
+  const toggleDetail = useAppStore((s) => s.toggleDetail)
+  const setSoundEnabled = useAppStore((s) => s.setSoundEnabled)
   const [showDynastyNav, setShowDynastyNav] = useState(false)
+  const [shareHint, setShareHint] = useState<string | null>(null)
+  const navRef = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+
+  // Escape 关闭下拉；点击下拉外部关闭
+  useEffect(() => {
+    if (!showDynastyNav) return
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowDynastyNav(false)
+        triggerRef.current?.focus()
+      }
+    }
+    const handlePointerDown = (e: MouseEvent) => {
+      if (navRef.current && !navRef.current.contains(e.target as Node)) {
+        setShowDynastyNav(false)
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    document.addEventListener('mousedown', handlePointerDown)
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+      document.removeEventListener('mousedown', handlePointerDown)
+    }
+  }, [showDynastyNav])
+
+  const toggleNav = () => setShowDynastyNav((v) => !v)
 
   const sealChar = SEAL_CHARS[selectedDynasty.id] || '史'
   const dynastyColor = selectedDynasty.color || '#e63946'
@@ -50,10 +83,14 @@ export function TopBar() {
         </div>
       </div>
 
-      <nav className="top-bar-center">
+      <nav className="top-bar-center" ref={navRef}>
         <button
+          ref={triggerRef}
           className="nav-dynasty-trigger"
-          onClick={() => setShowDynastyNav((v) => !v)}
+          onClick={toggleNav}
+          aria-expanded={showDynastyNav}
+          aria-haspopup="true"
+          aria-controls="dynasty-dropdown"
         >
           <span className="current-name" style={{ color: dynastyColor }}>
             {selectedDynasty.name}
@@ -65,11 +102,12 @@ export function TopBar() {
         </button>
 
         {showDynastyNav && (
-          <div className="dynasty-dropdown glass-panel">
+          <div className="dynasty-dropdown glass-panel" id="dynasty-dropdown" role="menu">
             {DYNASTIES_BY_TIME.map((d) => (
               <button
                 key={d.id}
                 className={`dropdown-item ${d.id === selectedDynasty.id ? 'is-active' : ''}`}
+                role="menuitem"
                 onClick={() => {
                   useAppStore.getState().setSelected(d.id)
                   setShowDynastyNav(false)
@@ -90,6 +128,22 @@ export function TopBar() {
       </nav>
 
       <div className="top-bar-right">
+        <button
+          className="share-toggle"
+          onClick={async () => {
+            const ok = await copyShareLink()
+            if (ok) {
+              setShareHint('已复制链接')
+            } else {
+              setShareHint('复制失败，请手动复制')
+            }
+            window.setTimeout(() => setShareHint(null), 1600)
+          }}
+          title="复制当前朝代的分享链接"
+          aria-live="polite"
+        >
+          {shareHint ?? '分享'}
+        </button>
         <button
           className="sound-toggle"
           onClick={() => {
