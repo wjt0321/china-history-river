@@ -137,4 +137,72 @@
 
 ---
 
+## 2026-06-13 阶段 3 — 视觉打磨与工程加固
+
+### D-024 站点图标
+- **决定**：使用朱印风格 SVG 作为 `favicon.svg`，强化“古画卷轴”品牌识别。
+- **位置**：`public/favicon.svg`。
+
+### D-025 工程加固
+- **决定**：引入 Vitest + React Testing Library，建立 `__tests__` 目录。
+- **范围**：
+  - 工具函数测试（`color.test.ts`、`format.test.ts`）。
+  - Store 测试（`appStore.test.ts`）。
+  - 朝代数据完整性测试（`dynasties.test.ts`）。
+  - ErrorBoundary 测试（`ErrorBoundary.test.tsx`）。
+  - URL 同步 hook 测试（`useUrlStateSync.test.ts`）。
+- **规则**：每次合并前必须 `npm run test` 全部通过。
+
+### D-026 错误边界
+- **决定**：新增 `ErrorBoundary` 组件，对 MapView 与详情面板分区容错。
+- **效果**：地图加载失败时显示降级提示，不影响整体应用。
+
+### D-027 URL 状态同步
+- **决定**：支持 `?d=<id>` 深链分享，刷新后自动恢复朝代。
+- **实现**：`useUrlStateSync` hook，监听 Zustand `selectedDynastyId` 与浏览器 `hash/search`。
+- **规则**：非法 id 回退到默认朝代。
+
+### D-028 工程清理
+- **决定**：合并前删除以下内容：
+  - 冗余 `public/dynasties/all.json`。
+  - 旧版下载脚本 `public/images/dl2.mjs`、`dl3.mjs`、`scripts/downloads/dl-seal.mjs`、`dl-yu.mjs`。
+  - 废弃 hooks `useCanvasAnimation.ts`、`useResizeObserver.ts`。
+- **原因**：减少维护面，避免历史脚本在仓库中造成混淆。
+
+---
+
+## 2026-06-14 阶段 4 — 叙事模式与发布收尾
+
+### D-029 自动巡游叙事模式
+- **决定**：新增 `StoryTour` 组件，按时间顺序自动播放各朝代旁白。
+- **功能**：
+  - 自动切换朝代并 flyTo 疆域中心。
+  - 时间轴同步高亮。
+  - 可暂停 / 继续 / 上一段 / 下一段。
+- **位置**：`src/components/StoryTour.tsx`。
+
+### D-030 史料来源清单
+- **决定**：新增 `src/data/sources.ts`，集中维护古籍、百科、地图集等来源元数据。
+- **展示**：在详情面板“概览”Tab 渲染来源清单入口。
+- **目标**：提升内容可信度，便于后续补充 URL。
+
+### D-031 合并与发布流程
+- **决定**：将 `iteration/pre-launch-cleanup` 分支通过 fast-forward 合并到 `main`。
+- **流程**：
+  1. 当前分支提交所有变更。
+  2. 切换 `main` 并拉取最新。
+  3. `git merge` 合并特性分支。
+  4. 更新 README、ITERATION.md、DECISIONS.md、AGENTS.md。
+  5. `npm run type-check && npm run test && npm run lint && npm run build` 验证。
+  6. `git push origin main`。
+  7. 运行 `deploy-gh-pages.bat` 更新 GitHub Pages。
+- **代理**：推送或部署受阻时使用本地 `127.0.0.1:10808`，用完立即关闭。
+
+### D-032 GitHub Pages 部署
+- **决定**：继续使用仓库根目录的 `deploy-gh-pages.bat` 脚本部署到 `gh-pages` 分支。
+- **输出**：`https://wjt0321.github.io/china-history-river/`。
+- **注意**：部署脚本会清空 `.deploy/` 目录并复制 `dist/` 产物，需确保构建产物最新。
+
+---
+
 （后续决策持续追加）

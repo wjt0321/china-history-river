@@ -36,7 +36,7 @@ npm run build
 | 命令 | 状态 | 说明 |
 |---|---|---|
 | `npm run type-check` | ✅ 通过 | 无 TypeScript 编译错误 |
-| `npm run test` | ✅ 通过 | 4 个测试文件，42 个测试全部通过 |
+| `npm run test` | ✅ 通过 | 6 个测试文件，49 个测试全部通过 |
 | `npm run lint` | ✅ 通过 | ESLint 无错误输出 |
 | `npm run build` | ✅ 通过 | Vite 构建成功，但 MapLibre chunk 较大 |
 
@@ -665,6 +665,8 @@ export interface StoryStep {
 10. ✅ **事件列表点击聚焦地图事件点。**
 11. ✅ **ARIA 与键盘操作增强。**
 12. ✅ **疆域示意免责声明与主要来源清单入口。**
+13. ✅ **工程清理：删除冗余 `all.json`、旧版下载脚本与废弃 hooks，补充站点 favicon。**
+14. ✅ **迭代分支清理合并：将 `iteration/pre-launch-cleanup` 合并回 `main` 并推送。**
 
 后续收尾建议：
 
@@ -673,6 +675,7 @@ export interface StoryStep {
 3. **逐朝代补充精细化 `sources` URL。**
 4. **为早期朝代补“文献记载 / 考古证据 / 传统说法 / 学界争议”标签。**
 5. **增强自动巡游：事件级聚焦、旁白节奏、配乐。**
+6. **建立持续部署：合并 main 后自动构建并推送 GitHub Pages。**
 
 ---
 
