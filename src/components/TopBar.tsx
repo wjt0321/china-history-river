@@ -102,7 +102,23 @@ export function TopBar() {
         </button>
 
         {showDynastyNav && (
-          <div className="dynasty-dropdown glass-panel" id="dynasty-dropdown" role="menu">
+          <div
+            className="dynasty-dropdown glass-panel"
+            id="dynasty-dropdown"
+            role="menu"
+            onKeyDown={(e) => {
+              const items = Array.from(e.currentTarget.querySelectorAll<HTMLElement>('[role="menuitem"]'))
+              const currentIdx = items.indexOf(document.activeElement as HTMLElement)
+              let nextIdx = currentIdx
+              if (e.key === 'ArrowDown') nextIdx = (currentIdx + 1) % items.length
+              else if (e.key === 'ArrowUp') nextIdx = (currentIdx - 1 + items.length) % items.length
+              else if (e.key === 'Home') nextIdx = 0
+              else if (e.key === 'End') nextIdx = items.length - 1
+              else return
+              e.preventDefault()
+              items[nextIdx]?.focus()
+            }}
+          >
             {DYNASTIES_BY_TIME.map((d) => (
               <button
                 key={d.id}
@@ -129,7 +145,7 @@ export function TopBar() {
 
       <div className="top-bar-right">
         <button
-          className="share-toggle"
+          className={`share-toggle ${shareHint ? 'is-feedback' : ''}`}
           onClick={async () => {
             const ok = await copyShareLink()
             if (ok) {

@@ -103,10 +103,10 @@
   font-weight: 900;
   color: var(--color-paper);
   letter-spacing: 0;
-  background: linear-gradient(145deg, rgba(10, 14, 26, 0.75) 0%, rgba(30, 18, 18, 0.7) 100%);
+  background: linear-gradient(145deg, rgba(12, 11, 9, 0.75) 0%, rgba(18, 17, 14, 0.7) 100%);
   box-shadow:
-    0 0 24px rgba(230, 57, 70, 0.18),
-    inset 0 0 12px rgba(230, 57, 70, 0.1);
+    0 0 24px var(--dynasty-glow, rgba(184, 148, 58, 0.18)),
+    inset 0 0 12px var(--dynasty-glow, rgba(184, 148, 58, 0.1));
   transform-origin: center;
 }
 

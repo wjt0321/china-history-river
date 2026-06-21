@@ -21,8 +21,8 @@
 
   /* 文字：宣纸白 */
   --color-text: #f5f0e6;
-  --color-text-dim: #a8a090;
-  --color-text-faint: #5a5548;
+  --color-text-dim: #b8b0a0;
+  --color-text-faint: #807a68;
 
   /* 古风点缀：墨 + 纸 */
   --color-ink: #3a3a36;
@@ -46,6 +46,18 @@
   --dynasty-color-dim: color-mix(in srgb, var(--dynasty-color) 70%, #000);
   --dynasty-color-bright: color-mix(in srgb, var(--dynasty-color) 80%, #fff);
   --dynasty-glow: color-mix(in srgb, var(--dynasty-color) 40%, transparent);
+
+  /* 布局常量 */
+  --topbar-height: 64px;
+  --timeline-height: 200px;
+
+  /* 阴影系统 */
+  --shadow-card: 0 1px 4px rgba(0, 0, 0, 0.15);
+  --shadow-elev: 0 4px 16px rgba(0, 0, 0, 0.3);
+  --shadow-modal: 0 8px 32px rgba(0, 0, 0, 0.5);
+
+  /* 面板尺寸（桌面默认） */
+  --panel-width: 440px;
 }
 
 * {
@@ -214,6 +226,46 @@ body {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+/* ===== 全局焦点样式 ===== */
+/* 对所有交互元素提供统一的 focus-visible 环 */
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible,
+[role="tab"]:focus-visible,
+[role="menuitem"]:focus-visible,
+select:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+.emperor-card:focus-visible,
+.dropdown-item:focus-visible,
+.timeline-item:focus-visible,
+.tab-btn:focus-visible,
+.nav-dynasty-trigger:focus-visible,
+.detail-close:focus-visible,
+.story-btn:focus-visible,
+.story-primary:focus-visible,
+.story-launcher:focus-visible,
+.share-toggle:focus-visible,
+.sound-toggle:focus-visible,
+.detail-toggle:focus-visible,
+.timeline-reset:focus-visible,
+.error-boundary-reload:focus-visible,
+.intro-skip:focus-visible {
+  outline: 1px solid var(--dynasty-color, var(--color-primary));
+  outline-offset: 2px;
+}
+
+/* 鼠标点击时不显示焦点环 */
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible),
+[role="button"]:focus:not(:focus-visible),
+[role="tab"]:focus:not(:focus-visible),
+[role="menuitem"]:focus:not(:focus-visible),
+.emperor-card:focus:not(:focus-visible),
+.dropdown-item:focus:not(:focus-visible) {
+  outline: none;
 }
 
 /* 跳过链接（键盘焦点时显示） */

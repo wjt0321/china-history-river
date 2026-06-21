@@ -148,7 +148,7 @@ export function MapView() {
         <div className="corner-tick" />
         <div className="corner-tick rot" />
       </div>
-      <div className="map-overlay-info glass-panel">
+      <div className="map-overlay-info glass-panel" key={selectedDynasty.id}>
         <div className="info-label">CURRENT TERRITORY</div>
         <div className="info-name" style={{ color: dynastyColor }}>{selectedDynasty.name}</div>
         <div className="info-era" style={{ color: dynastyColor }}>

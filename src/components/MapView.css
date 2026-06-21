@@ -19,6 +19,9 @@
 .maplibregl-ctrl-group button {
   background-color: transparent !important;
   filter: invert(0.85) hue-rotate(165deg);
+  min-width: 40px;
+  min-height: 40px;
+  touch-action: manipulation;
 }
 
 .maplibregl-ctrl-group button:hover {
@@ -46,7 +49,7 @@
 }
 
 .map-overlay-corner-tr {
-  right: calc(var(--panel-width, 420px) + 40px);
+  right: calc(var(--panel-width, 440px) + 40px);
 }
 
 .corner-tick {
@@ -79,6 +82,30 @@
   padding: 20px 24px;
   border-radius: 8px;
   min-width: 260px;
+  animation: infoFadeIn 0.5s var(--ease-out) both;
+}
+
+@keyframes infoFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.map-overlay-info .info-label {
+  animation: infoStagger 0.4s var(--ease-out) 0.05s both;
+}
+.map-overlay-info .info-name {
+  animation: infoStagger 0.5s var(--ease-out) 0.1s both;
+}
+.map-overlay-info .info-era {
+  animation: infoStagger 0.4s var(--ease-out) 0.15s both;
+}
+.map-overlay-info .info-accent-line {
+  animation: infoStagger 0.5s var(--ease-out) 0.2s both;
+}
+
+@keyframes infoStagger {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .info-label {
@@ -125,7 +152,7 @@
 
 .map-attribution {
   position: absolute;
-  bottom: 212px;
+  bottom: calc(var(--timeline-height, 200px) + 12px);
   right: 12px;
   font-size: 10px;
   color: var(--color-text-faint);
@@ -220,12 +247,16 @@
   .map-attribution {
     bottom: 192px;
   }
+  /* 移动端面板占全宽，右上角标被挤出屏外，隐藏之 */
+  .map-overlay-corner-tr {
+    display: none;
+  }
 }
 
 /* Loading / Error 状态提示 */
 .map-status {
   position: absolute;
-  bottom: 240px;
+  bottom: calc(var(--timeline-height, 200px) + 40px);
   left: 24px;
   z-index: 5;
   display: flex;

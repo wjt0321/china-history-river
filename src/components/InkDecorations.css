@@ -33,12 +33,12 @@
 
 /* 左上角小印章 */
 .ink-seal-tl {
-  bottom: 218px;
+  bottom: calc(var(--timeline-height, 200px) + 18px);
   left: 32px;
   width: 24px;
   height: 52px;
   font-size: 12px;
-  opacity: 0.45;
+  opacity: 0.55;
 }
 
 /* 墨迹 SVG */
@@ -57,7 +57,7 @@
 
 .ink-splash-br {
   right: 0;
-  bottom: 210px;
+  bottom: var(--timeline-height, 200px);
   width: 220px;
   height: 170px;
 }
@@ -71,8 +71,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  opacity: 0.25;
-}
+  opacity: 0.35;
 
 .ink-inscription-line {
   font-family: var(--font-zh);

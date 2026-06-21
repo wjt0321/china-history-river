@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAppStore } from '@/stores/appStore'
 import { formatYear } from '@/utils/format'
@@ -55,6 +55,20 @@ export function DetailPanel() {
   const sceneUrl = SCENE_IMAGES[selectedDynasty.id]
   const dynastyColor = selectedDynasty.color || '#e63946'
 
+  // 移动端底部 Sheet 下滑关闭手势
+  const swipeStartY = useRef(0)
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    swipeStartY.current = e.touches[0].clientY
+  }, [])
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    const deltaY = e.changedTouches[0].clientY - swipeStartY.current
+    // 仅在内容已滚动到顶部且向下滑 > 80px 时关闭
+    const scrollEl = (e.currentTarget as HTMLElement)
+    if (scrollEl.scrollTop <= 0 && deltaY > 80) {
+      closeDetail()
+    }
+  }, [closeDetail])
+
   return (
     <AnimatePresence>
       {isDetailOpen && (
@@ -66,7 +80,11 @@ export function DetailPanel() {
           exit="exit"
         >
           <div className="scroll-roller" />
-          <div className="scroll-content">
+          <div
+            className="scroll-content"
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+          >
             <header className="detail-header">
               <motion.div
                 className="detail-era"
@@ -111,30 +129,43 @@ export function DetailPanel() {
             {figureUrl && (
               <motion.div className="detail-hero" custom={4} variants={contentVariants} initial="hidden" animate="visible">
                 <div className="hero-img-wrap">
-                  <img src={figureUrl} alt={FIGURE_CAPTIONS[selectedDynasty.id]} className="hero-img" loading="lazy" />
+                  <img src={figureUrl} alt={FIGURE_CAPTIONS[selectedDynasty.id]} className="hero-img" loading="lazy" key={selectedDynasty.id} />
                   <div className="hero-vignette" />
                 </div>
                 <div className="hero-caption">{FIGURE_CAPTIONS[selectedDynasty.id]}</div>
               </motion.div>
             )}
 
-            <nav className="detail-tabs">
-              {TABS.map((t) => (
-                <button
-                  key={t.key}
-                  className={`tab-btn ${activeTab === t.key ? 'is-active' : ''}`}
-                  onClick={() => setActiveTab(t.key)}
-                  style={activeTab === t.key ? { background: dynastyColor, color: 'var(--color-bg-deep)' } : undefined}
-                >
-                  {t.label}
-                </button>
-              ))}
-              <motion.div
-                className="tab-indicator"
-                layoutId="tab-indicator"
-                style={{ background: dynastyColor }}
-                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-              />
+            <nav className="detail-tabs" role="tablist" aria-label="内容分类">
+              {TABS.map((t, idx) => {
+                const isActive = activeTab === t.key
+                return (
+                  <button
+                    key={t.key}
+                    role="tab"
+                    aria-selected={isActive}
+                    tabIndex={isActive ? 0 : -1}
+                    className={`tab-btn ${isActive ? 'is-active' : ''}`}
+                    onClick={() => setActiveTab(t.key)}
+                    onKeyDown={(e) => {
+                      // 左右箭头切换 Tab
+                      const tabCount = TABS.length
+                      let nextIdx = idx
+                      if (e.key === 'ArrowRight') nextIdx = (idx + 1) % tabCount
+                      else if (e.key === 'ArrowLeft') nextIdx = (idx - 1 + tabCount) % tabCount
+                      else return
+                      e.preventDefault()
+                      setActiveTab(TABS[nextIdx].key)
+                      // 将焦点移到新激活的按钮
+                      const tabs = (e.currentTarget.parentNode as HTMLElement).querySelectorAll<HTMLElement>('[role="tab"]')
+                      tabs[nextIdx]?.focus()
+                    }}
+                    style={isActive ? { background: dynastyColor, color: 'var(--color-bg-deep)' } : undefined}
+                  >
+                    {t.label}
+                  </button>
+                )
+              })}
             </nav>
 
             <div className="detail-content">

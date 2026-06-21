@@ -238,6 +238,17 @@
   background: var(--color-bg-elev-2);
 }
 
+/* 复制反馈动画 */
+.share-toggle.is-feedback {
+  animation: sharePop 0.35s var(--ease-out);
+}
+
+@keyframes sharePop {
+  0% { transform: scale(1); }
+  40% { transform: scale(0.92); }
+  100% { transform: scale(1); }
+}
+
 .detail-toggle {
   padding: 8px 20px;
   background: transparent;

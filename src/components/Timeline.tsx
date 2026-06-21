@@ -82,13 +82,16 @@ export function Timeline() {
       }
     }
 
-    const handleMouseMove = (e: MouseEvent) => {
+    const handlePointerMove = (e: PointerEvent) => {
+      // 触屏设备上 pointermove 可能频繁触发 hover 更新，防止默认滚动行为
       const rect = canvas.getBoundingClientRect()
       const x = e.clientX - rect.left
       const y = e.clientY - rect.top
       isInBrush = y >= BRUSH_TOP
 
       if (brushDrag.active) {
+        // 拖拽中阻止默认手势（防止页面滚动/缩放）
+        e.preventDefault()
         const { mode, startX, startRangeStart, startRangeEnd } = brushDrag
         if (mode === 'pan') {
           const px = ((x - startX) / (width - PADDING * 2)) * FULL_YEAR_RANGE
@@ -125,6 +128,9 @@ export function Timeline() {
 
       if (isInBrush) return
 
+      // 触屏设备上不通过 pointermove 触发 hover 预览，避免误触
+      if (e.pointerType === 'touch') return
+
       const dynasty = getDynastyAtX(x)
       const currentHover = useAppStore.getState().hoveredDynastyId
       const newHover = dynasty ? dynasty.id : null
@@ -133,7 +139,9 @@ export function Timeline() {
       }
     }
 
-    const handleMouseLeave = () => {
+    const handlePointerLeave = (e: PointerEvent) => {
+      // 触屏设备 pointerleave 后不立即清 hover，留给 click 处理
+      if (e.pointerType === 'touch') return
       isInBrush = false
       brushDrag.active = false
       brushDrag.mode = 'none'
@@ -144,11 +152,15 @@ export function Timeline() {
       canvas.style.cursor = 'default'
     }
 
-    const handleMouseDown = (e: MouseEvent) => {
+    const handlePointerDown = (e: PointerEvent) => {
       const rect = canvas.getBoundingClientRect()
       const x = e.clientX - rect.left
       const y = e.clientY - rect.top
       if (y < BRUSH_TOP) return
+
+      // brush 区域内捕获 pointer，保证拖拽到 canvas 外部也能接收事件
+      canvas.setPointerCapture(e.pointerId)
+      e.preventDefault()
 
       const { timeRange } = useAppStore.getState()
       const wx1 = fullYearToX(timeRange.startYear, width)
@@ -170,7 +182,8 @@ export function Timeline() {
       }
     }
 
-    const handleMouseUp = () => {
+    const handlePointerUp = (e: PointerEvent) => {
+      canvas.releasePointerCapture(e.pointerId)
       brushDrag.active = false
       brushDrag.mode = 'none'
     }
@@ -187,13 +200,19 @@ export function Timeline() {
       }
     }
 
-    canvas.addEventListener('mousemove', handleMouseMove)
-    canvas.addEventListener('mouseleave', handleMouseLeave)
-    canvas.addEventListener('mousedown', handleMouseDown)
-    window.addEventListener('mouseup', handleMouseUp)
+    canvas.addEventListener('pointermove', handlePointerMove)
+    canvas.addEventListener('pointerleave', handlePointerLeave)
+    canvas.addEventListener('pointerdown', handlePointerDown)
+    window.addEventListener('pointerup', handlePointerUp)
     canvas.addEventListener('click', handleClick)
 
     let animId = 0
+
+    // 帧级缓存：避免每帧重建 segments
+    const drawState: { lastKey: string; cachedSegments: Segment[] | null } = {
+      lastKey: '',
+      cachedSegments: null,
+    }
 
     const getHalfWidthAtX = (x: number, segments: Segment[]) => {
       const seg = segments.find((s) => x >= s.startX && x <= s.endX)
@@ -227,13 +246,21 @@ export function Timeline() {
 
       const { selectedDynastyId, hoveredDynastyId, timeRange } = useAppStore.getState()
 
+      // 脏标记：仅在状态变化时重建 segments 和标签，节省构建开销
+      const lastDrawKey = drawState.lastKey
+      const drawKey = `${selectedDynastyId}|${hoveredDynastyId}|${timeRange.startYear}|${timeRange.endYear}|${width}`
+      const isDirty = drawKey !== lastDrawKey
+      if (isDirty) {
+        drawState.lastKey = drawKey
+        drawState.cachedSegments = buildSegments(width, timeRange)
+      }
+      const segments = drawState.cachedSegments!
+
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
       ctx.clearRect(0, 0, width, CANVAS_HEIGHT)
 
       const time = performance.now() / 1000
       const phase = time * 0.4
-
-      const segments = buildSegments(width, timeRange)
 
       // 1. 河流填充
       segments.forEach((seg) => {
@@ -361,12 +388,12 @@ export function Timeline() {
         if (segWidth < 36) return
         const labelY = index % 2 === 0 ? CENTER_Y - 45 : CENTER_Y + 55
 
-        ctx.font = `${isActive ? 'bold 15px' : '500 12px'} var(--font-zh, "Noto Serif SC", "Microsoft YaHei", serif)`
+        ctx.font = `${isActive ? 'bold 15px' : '500 12px'} "Noto Serif SC", "Source Han Serif SC", "宋体", "STSong", serif`
         ctx.textAlign = 'center'
         ctx.fillStyle = isActive ? '#f5f0e6' : 'rgba(168, 160, 144, 0.85)'
         ctx.fillText(dynasty.name, midX, labelY)
 
-        ctx.font = '9px var(--font-mono, "SF Mono", Consolas, monospace)'
+        ctx.font = '9px "JetBrains Mono", "Consolas", monospace'
         ctx.fillStyle = 'rgba(168, 160, 144, 0.6)'
         const yearText = `${formatYear(dynasty.startYear, 'short')} — ${formatYear(dynasty.endYear, 'short')}`
         ctx.fillText(yearText, midX, labelY + 14)
@@ -415,7 +442,7 @@ export function Timeline() {
       ctx.fillRect(wx1 - HANDLE_W / 2, trackY - trackH / 2 - 2, HANDLE_W, trackH + 4)
       ctx.fillRect(wx2 - HANDLE_W / 2, trackY - trackH / 2 - 2, HANDLE_W, trackH + 4)
 
-      ctx.font = '9px var(--font-mono, "SF Mono", Consolas, monospace)'
+      ctx.font = '9px "JetBrains Mono", "Consolas", monospace'
       ctx.fillStyle = 'rgba(168, 160, 144, 0.7)'
       ctx.textAlign = 'left'
       ctx.fillText(formatYear(timeRange.startYear, 'short'), PADDING, BRUSH_BOTTOM - 2)
@@ -436,10 +463,10 @@ export function Timeline() {
     return () => {
       cancelAnimationFrame(animId)
       window.removeEventListener('resize', resize)
-      canvas.removeEventListener('mousemove', handleMouseMove)
-      canvas.removeEventListener('mouseleave', handleMouseLeave)
-      canvas.removeEventListener('mousedown', handleMouseDown)
-      window.removeEventListener('mouseup', handleMouseUp)
+      canvas.removeEventListener('pointermove', handlePointerMove)
+      canvas.removeEventListener('pointerleave', handlePointerLeave)
+      canvas.removeEventListener('pointerdown', handlePointerDown)
+      window.removeEventListener('pointerup', handlePointerUp)
       canvas.removeEventListener('click', handleClick)
     }
   }, [])

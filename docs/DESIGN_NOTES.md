@@ -149,11 +149,16 @@
 - 高频状态读取使用 `useAppStore.getState()`；
 - React 只负责组件生命周期和容器挂载。
 
-后续可优化方向：
+后续优化（已完成）：
 
-- `Timeline` 拆分绘制函数；
-- 使用 dirty flag 降低不必要重绘；
-- 将 mouse 事件升级为 Pointer Events，兼容触摸设备。
+- ✅ `Timeline` mouse → Pointer Events（触屏完整支持，含 setPointerCapture）
+- ✅ 脏标记缓存 segments 减少每帧重建
+- ✅ CustomCursor 脱离 React 渲染循环（直接 DOM 操作）
+
+后续可继续：
+
+- `AtmosphereParticles` 粒子池复用优化
+- 低端设备自动降帧检测
 
 ---
 
@@ -185,13 +190,24 @@
 - 自定义光标在触屏设备禁用；
 - 关键内容仍以文本形式存在于详情面板。
 
-后续需要补强：
+后续已经补强（2026-06 完成）：
 
-- 详情 tab 的 `role="tablist"` / `role="tab"` / `aria-selected`；
-- 顶部朝代下拉的 `aria-expanded` / `aria-controls`；
-- `Esc` 关闭详情面板；
-- Canvas 时间轴的键盘替代导航；
-- 移动端 bottom sheet 交互。
+- ✅ 详情 tab 的 `role="tablist"` / `role="tab"` / `aria-selected` + 键盘左右箭头切换
+- ✅ 顶部朝代下拉的 `aria-expanded` / `aria-controls` + ArrowUp/ArrowDown/Home/End 键盘导航
+- ✅ `Esc` 关闭详情面板（已存在）+ 移动端下滑关闭手势
+- ✅ Canvas 时间轴的键盘替代导航（sr-only select）
+- ✅ 移动端 bottom sheet 交互（grab handle + swipe-to-dismiss）
+- ✅ 全局 `:focus-visible` 焦点环样式
+- ✅ Timeline mouse events → Pointer Events（触屏完整可用）
+- ✅ `--timeline-height` 等布局变量消除跨组件魔法数字
+- ✅ 文字对比度修正至 WCAG AA（`--text-dim` / `--text-faint`）
+- ✅ 性能优化：Timeline 脏标记 + CustomCursor 脱离 React 渲染循环
+
+后续仍需关注：
+
+- i18n / 多语言支持
+- 时间轴的 brush 缩放动画在触屏上的平滑性
+- 更细粒度的疆域数据来源标注
 
 ---
 

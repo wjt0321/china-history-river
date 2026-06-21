@@ -13,10 +13,7 @@ import './CustomCursor.css'
  * - 鼠标移出窗口 / 窗口失焦时自动恢复系统光标，避免"光标丢失"
  */
 export function CustomCursor() {
-  const [pos, setPos] = useState({ x: -100, y: -100 })
-  const [isHovering, setIsHovering] = useState(false)
-  const [isPressed, setIsPressed] = useState(false)
-  const [isVisible, setIsVisible] = useState(false)
+  const cursorRef = useRef<HTMLDivElement>(null)
   const [isTouch, setIsTouch] = useState(false)
   const rafRef = useRef<number>(0)
   const targetRef = useRef({ x: -100, y: -100 })
@@ -29,17 +26,25 @@ export function CustomCursor() {
     setIsTouch(hasTouch)
     if (hasTouch) return
 
+    const updateClasses = (hovering: boolean, pressed: boolean, visible: boolean) => {
+      const el = cursorRef.current
+      if (!el) return
+      el.classList.toggle('is-hovering', hovering)
+      el.classList.toggle('is-pressed', pressed)
+      el.classList.toggle('is-visible', visible)
+    }
+
     const showCursor = () => {
       if (visibleRef.current) return
       visibleRef.current = true
-      setIsVisible(true)
+      updateClasses(false, false, true)
       document.documentElement.classList.add('cursor-hidden')
     }
 
     const hideCursor = () => {
       if (!visibleRef.current) return
       visibleRef.current = false
-      setIsVisible(false)
+      updateClasses(false, false, false)
       document.documentElement.classList.remove('cursor-hidden')
     }
 
@@ -47,7 +52,7 @@ export function CustomCursor() {
       targetRef.current = { x: e.clientX, y: e.clientY }
       if (!visibleRef.current) showCursor()
 
-      // 靠近窗口边界时临时恢复系统光标，避免"移到边界后光标消失回不来"
+      // 靠近窗口边界时临时恢复系统光标
       const edgeMargin = 10
       const nearEdge =
         e.clientX <= edgeMargin ||
@@ -62,7 +67,10 @@ export function CustomCursor() {
 
       if (rafRef.current === 0) {
         rafRef.current = requestAnimationFrame(() => {
-          setPos(targetRef.current)
+          // 直接操作 DOM，绕过 React 渲染
+          if (cursorRef.current) {
+            cursorRef.current.style.transform = `translate(${targetRef.current.x}px, ${targetRef.current.y}px)`
+          }
           rafRef.current = 0
         })
       }
@@ -71,13 +79,12 @@ export function CustomCursor() {
     const handleOver = (e: MouseEvent) => {
       const target = e.target as HTMLElement | null
       if (!target) return
-      setIsHovering(isInteractive(target))
+      updateClasses(isInteractive(target), false, true)
     }
 
-    const handleOut = () => setIsHovering(false)
-
-    const handleDown = () => setIsPressed(true)
-    const handleUp = () => setIsPressed(false)
+    const handleOut = () => updateClasses(false, false, true)
+    const handleDown = () => updateClasses(false, true, true)
+    const handleUp = () => updateClasses(false, false, true)
 
     // 离开浏览器窗口：relatedTarget 为 null 表示真正离开视口
     const handleWindowOut = (e: MouseEvent) => {
@@ -137,10 +144,9 @@ export function CustomCursor() {
 
   return (
     <div
-      className={`custom-cursor ${isHovering ? 'is-hovering' : ''} ${isPressed ? 'is-pressed' : ''} ${isVisible ? 'is-visible' : ''}`}
+      ref={cursorRef}
+      className="custom-cursor"
       style={{
-        left: pos.x,
-        top: pos.y,
         '--cursor-color': color,
       } as React.CSSProperties}
       aria-hidden="true"

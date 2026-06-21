@@ -2,7 +2,7 @@
   position: absolute;
   top: 0;
   right: 0;
-  bottom: 210px;
+  bottom: calc(var(--timeline-height, 200px) + 10px);
   width: var(--panel-width, 440px);
   z-index: 8;
   border-radius: 0;
@@ -241,7 +241,13 @@
   object-fit: contain;
   object-position: center;
   filter: contrast(1.05) saturate(0.9);
-  transition: transform 0.7s var(--ease-out);
+  transition: opacity 0.4s var(--ease-out), transform 0.7s var(--ease-out);
+  animation: heroFadeIn 0.5s var(--ease-out) both;
+}
+
+@keyframes heroFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .detail-hero:hover .hero-img {
@@ -339,18 +345,8 @@
 
 .tab-btn.is-active {
   font-weight: 700;
-}
-
-.tab-btn.is-active::after {
-  content: '';
-  position: absolute;
-  bottom: 4px;
-  left: 10%;
-  right: 10%;
-  height: 2px;
-  background: var(--dynasty-color, var(--color-accent));
-  border-radius: 1px;
-  box-shadow: 0 0 8px var(--dynasty-glow, var(--color-accent));
+  border-bottom: 2px solid var(--dynasty-color, var(--color-accent));
+  border-radius: 6px 6px 2px 2px;
 }
 
 .detail-content {
@@ -382,7 +378,7 @@
   background: var(--color-bg-elev);
   border-left: 3px solid var(--dynasty-color, var(--color-primary));
   border-radius: 4px 8px 8px 4px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-card);
   transition: border-color 0.6s var(--ease-out);
 }
 
@@ -426,7 +422,7 @@
   border: 1px solid var(--color-border);
   border-radius: 8px;
   transition: all 0.25s;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-card);
   cursor: pointer;
   outline: none;
 }
@@ -626,7 +622,7 @@
   background: var(--color-bg-elev);
   border-left: 3px solid var(--color-accent);
   border-radius: 4px 8px 8px 4px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-card);
 }
 
 .battle-year {
@@ -719,7 +715,7 @@
   background: var(--color-bg-elev);
   border: 1px solid var(--color-border);
   border-radius: 8px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-card);
   transition: border-color 0.25s;
 }
 
@@ -789,7 +785,7 @@
   border-left: 3px solid var(--color-paper);
   border-radius: 4px 8px 8px 4px;
   margin: 0;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-card);
 }
 
 .eval-quote p {
@@ -822,7 +818,7 @@
   background: var(--color-bg-elev);
   border: 1px solid var(--color-border);
   border-radius: 6px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-card);
   transition: border-color 0.25s;
 }
 
@@ -866,7 +862,7 @@
   background: var(--color-bg-elev);
   border-left: 3px solid var(--dynasty-color, var(--color-primary));
   border-radius: 4px 8px 8px 4px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-card);
   transition: border-color 0.6s var(--ease-out);
 }
 
@@ -1193,6 +1189,5 @@
 @media (min-width: 769px) and (max-width: 1279px) {
   .detail-panel {
     width: 380px;
-    padding: 40px 28px 28px;
   }
 }
